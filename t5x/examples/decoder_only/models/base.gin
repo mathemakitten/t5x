@@ -48,7 +48,7 @@ decoding.temperature_sample:
 network.DecoderWrapper.config = @network.TransformerConfig()
 network.TransformerConfig:
   vocab_size = 32128  # vocab size rounded to a multiple of 128 for TPU efficiency
-  dtype = bfloat16'
+  dtype = 'bfloat16'
   emb_dim = 768
   num_heads = 12
   num_layers = 12
