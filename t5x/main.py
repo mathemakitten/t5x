@@ -19,7 +19,7 @@ Currently this includes train/infer/eval/precompile.
 Example Local (CPU) Pretrain Gin usage
 
 python -m t5x.main \
-  --gin_file=t5x/examples/t5/t5_1_1/tiny.gin \
+  --gin_file=t5x/examples/t5/t5_1_1/tiny_single_gpu.gin \
   --gin_file=t5x/configs/runs/pretrain.gin \
   --gin.MODEL_DIR=\"/tmp/t5x_pretrain\" \
   --gin.TRAIN_STEPS=10 \
