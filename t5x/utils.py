@@ -1373,7 +1373,7 @@ def get_infer_fn(infer_step: InferStepCallable, batch_size: int,
       else:
         batch_indices, batch_result = partitioned_infer_step(
             train_state.params, infer_batch, step_rng, index)
-        logging.info('Inference of batch %s done.', index)
+        # logging.info('Inference of batch %s done.', index)  # this amount of logging is annoying sorry
 
       def _copy_to_host_async(x):
         if isinstance(x, GlobalDeviceArray):

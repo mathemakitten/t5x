@@ -29,15 +29,12 @@ USE_CACHED_TASKS = True
 MIXTURE_OR_TASK_MODULE = None
 SHUFFLE_TRAIN_EXAMPLES = True
 
-# HW RNG is faster than SW, but has limited determinism.
-# Most notably it is not deterministic across different
-# submeshes.
+# HW RNG is faster than SW, but has limited determinism. Most notably it is not deterministic across different submeshes.
 USE_HARDWARE_RNG = False
-# None always uses faster, hardware RNG
-RANDOM_SEED = None
+RANDOM_SEED = None  # None always uses faster, hardware RNG
 
 MIXTURE_OR_TASK_NAME = "wmt_t2t_ende_v003"
-TASK_FEATURE_LENGTHS = {"inputs": 1024, "targets": 1024}  # sequence length
+TASK_FEATURE_LENGTHS = {"inputs": 1024, "targets": 1024}  # sequence length; shorter will be truncated
 TRAIN_STEPS = 50000
 
 train_script.train:
@@ -60,12 +57,10 @@ train_script.train:
   infer_eval_dataset_cfg = @infer_eval/utils.DatasetConfig()
   inference_evaluator_cls = @seqio.Evaluator
 
-
 partitioning.PjitPartitioner:
-  num_partitions = 1
-  model_parallel_submesh = None
+  num_partitions = 2  # change to 1 for running on a single GPU
+  model_parallel_submesh = None  # (1, 1, 1, 2)  # model_parallel_submesh and are exclusive of each other
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
-
 
 # ------------------- Loss HParam ----------------------------------------------
 Z_LOSS = 0.0001
@@ -106,6 +101,11 @@ optax.warmup_cosine_decay_schedule:
   warmup_steps = 1000
   decay_steps = %TRAIN_STEPS
   end_value = 0.0
+
+utils.create_learning_rate_scheduler:
+  factors = 'constant * rsqrt_decay'
+  base_learning_rate = 1.0
+  warmup_steps = 10000  # 10k to keep consistent with T5/MTF defaults.
 
 # ------------------- Model ----------------------------------------------------
 MODEL = @models.DecoderOnlyModel()
@@ -203,11 +203,3 @@ trainer.Trainer:
 # `num_decodes` is equivalent to a beam size in a beam search decoding.
 models.DecoderOnlyModel.predict_batch_with_aux.num_decodes = 8
 models.DecoderOnlyModel.inputs_bidirectional_attention = True
-
-partitioning.PjitPartitioner.num_partitions = 2  # Change to 1 for running on a single GPU
-#partitioning.PjitPartitioner.model_parallel_submesh = (1, 1, 1, 2)
-
-utils.create_learning_rate_scheduler:
-  factors = 'constant * rsqrt_decay'
-  base_learning_rate = 1.0
-  warmup_steps = 10000  # 10k to keep consistent with T5/MTF defaults.
