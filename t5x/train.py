@@ -607,9 +607,6 @@ def train(
     final_epoch = epoch == num_epochs - 1
     logging.info('Epoch %d of %d', epoch, num_epochs)
 
-    # Run initial evaluation
-    _run_training_eval(first_run and not run_eval_before_training)
-
     # `stop_training` is requested, break out the main loop immediately.
     if trainer.stop_training:
       break
