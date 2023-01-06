@@ -4,7 +4,7 @@ As of January 4, 2023.
 
 ### Installation 
 
-* Deep Learning VM is OK to use (it installs cuDNN and CUDA), but don't forget to `sudo chown -R $USER /opt/conda/` 
+* Deep Learning VM is OK to use (it installs cuDNN and CUDA; you do **not** need nvidia-docker), but don't forget to `sudo chown -R $USER /opt/conda/` 
 * `gcloud auth login`
 * `conda create -n t5x python=3.8.10`
 * `pip install -e .`
@@ -22,12 +22,18 @@ python t5x/train.py --gin_file="t5x/examples/decoder_only/examples/base_wmt_from
 
 This will train a model on the pretraining mix of `'europarl_v7', 'commoncrawl', 'newscommentary_v13'`, validate on `'newstest2013'` and test on `'newstest2014'`.
 
-For a decoder which you can fit on a single T4 for debugging purposes:
+For a decoder (134307072 parameters) which you can fit on a single T4 for debugging purposes:
 ```
-python t5x/train.py --gin_file="t5x/examples/decoder_only/examples/tiny_single_gpu.gin" --gin.MODEL_DIR=\"${MODEL_DIR}\" --tfds_data_dir=${TFDS_DATA_DIR}
+python t5x/train.py --gin_file="t5x/examples/decoder_only/examples/tiny_gpu_single.gin" --gin.MODEL_DIR=\"${MODEL_DIR}\" --tfds_data_dir=${TFDS_DATA_DIR}
 ```
 
 TODO(helen): figure out why the loss is so high (1477)
+
+For the same decoder (134307072 parameters) with a larger batch size to scale up on 4 GPUs:
+
+```
+python t5x/train.py --gin_file="t5x/examples/decoder_only/examples/tiny_gpu_4x.gin" --gin.MODEL_DIR=\"${MODEL_DIR}\" --tfds_data_dir=${TFDS_DATA_DIR}
+```
 
 **T5** (have not tested on GPU yet)
 
@@ -36,8 +42,17 @@ python t5x/train.py --gin_file="t5x/examples/t5/t5_1_1/examples/base_wmt_from_sc
 ```
 
 ### CUDA shenanigans
-* `nvcc --version`; `Build cuda_11.4.r11.4` works for sure
+* `nvcc --version`; `Build cuda_11.4` works for sure
 * For JAX on GPUs CUDA 11.4 or newer is required so you will likely have to upgrade it manually
   * NVIDIA instructions [here](https://developer.nvidia.com/cuda-11-4-1-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Debian&target_version=10&target_type=deb_local)
 * Download JAX GPU versions from [here](https://storage.googleapis.com/jax-releases/jax_cuda_releases.html), *not* [here](https://storage.googleapis.com/jax-releases/jax_releases.html) as linked in the T5X documentation. 
 * CUDA is probably at `/usr/local/cuda/lib64`, and `jaxlib==0.4.1+cuda11.cudnn86` works.
+
+### XLA flags 
+* [NVIDIA](https://github.com/google-research/t5x/pull/952) suggests setting XLA debugging flags with `export XLA_FLAGS='--xla_gpu_simplify_all_fp_conversions --xla_gpu_all_reduce_combine_threshold_bytes=136314880 ${XLA_FLAGS}'`
+* As per [XLA documentation](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/compiler/xla/xla.proto), `xla_gpu_simplify_all_fp_conversions` needs to be set because it "allows all floating-point conversions to be simplified, including those that affect the numerics. The `BFloat16Normalization` pass inserts many `f32 -> bf16 -> f32` conversion pairs. These are not removed by the `AlgebraicSimplifier`, as that will only simplify conversions that are no-ops, e.g. `bf16 -> f32 -> bf16`. Removing these improves accuracy."
+
+### Misc
+* `model_parallel_submesh` can be an int (for a single GPU) or a 
+* `model_parallel_submesh` and `num_partitions` arguments are mutually-exclusive methods for partitioning! See partitioning.md for more details.
+* Easiest way to get up and running on a single GPU for debugging is setting `num_partitions = 1` in `partitioning.PjitPartitioner`.
