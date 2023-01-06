@@ -5,6 +5,7 @@ from __gin__ import dynamic_registration
 
 import __main__ as train_script
 import seqio
+
 from t5x import adafactor
 from t5x import optimizers
 from t5x import decoding
@@ -21,7 +22,7 @@ MIXTURE_OR_TASK_NAME = %gin.REQUIRED
 TASK_FEATURE_LENGTHS = %gin.REQUIRED
 TRAIN_STEPS = %gin.REQUIRED
 MODEL_DIR = %gin.REQUIRED
-BATCH_SIZE = 128
+BATCH_SIZE = 16  # global batch size
 USE_CACHED_TASKS = True
 
 # DEPRECATED: Import the this module in your gin file.
@@ -36,7 +37,7 @@ USE_HARDWARE_RNG = False
 RANDOM_SEED = None
 
 MIXTURE_OR_TASK_NAME = "wmt_t2t_ende_v003"
-TASK_FEATURE_LENGTHS = {"inputs": 256, "targets": 256}
+TASK_FEATURE_LENGTHS = {"inputs": 1024, "targets": 1024}  # sequence length
 TRAIN_STEPS = 50000
 
 train_script.train:
@@ -69,12 +70,7 @@ partitioning.PjitPartitioner:
 # ------------------- Loss HParam ----------------------------------------------
 Z_LOSS = 0.0001
 LABEL_SMOOTHING = 0.0
-# NOTE: When fine-tuning the public T5 checkpoints (trained in T5 MeshTF)
-# the loss normalizing factor should be set to pretraining batch_size *
-# target_token_length.
-LOSS_NORMALIZING_FACTOR = None
-# Dropout should be specified in the "run" files
-# DROPOUT_RATE = %gin.REQUIRED
+LOSS_NORMALIZING_FACTOR = None  # set to pretraining batch_size * target_token_length when fine-tuning the public T5 checkpoints (trained in T5 MeshTF)
 
 # Vocabulary (shared by encoder and decoder)
 VOCABULARY = @seqio.SentencePieceVocabulary()
@@ -153,7 +149,6 @@ train/utils.DatasetConfig:
   pack = True
   module = %MIXTURE_OR_TASK_MODULE
 
-  batch_size = 8
   use_cached = False
   pack = True
   seed = 0
@@ -171,7 +166,6 @@ train_eval/utils.DatasetConfig:
   pack = True
   module = %MIXTURE_OR_TASK_MODULE
 
-  batch_size = 8
   use_cached = False
   pack = True
   seed = 0
@@ -181,7 +175,7 @@ infer_eval/utils.DatasetConfig:
   task_feature_lengths = None  # compute max
   split = "validation"
   seed = 0
-  batch_size = 8
+  batch_size = %BATCH_SIZE
   shuffle = False
   use_cached = False
 
@@ -197,13 +191,9 @@ utils.RestoreCheckpointConfig:
   path = []  # initialize from scratch
 
 utils.SaveCheckpointConfig:
-
-  # from pretrain.gin
-  period = 1000
   dtype = 'float32'
-  keep = None  # keep all checkpoints
+  keep = 1  # set to None to keep all checkpoints
   save_dataset = False  # don't checkpoint dataset state
-
   period = 5000  # checkpoint frequency
 
 trainer.Trainer:

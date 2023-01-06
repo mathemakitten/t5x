@@ -5,7 +5,7 @@
 * [ ] Assert that `loss_per_nonpadding_target_token` makes sense given the vocabulary size (e.g. `ln(30000)` ~ 10.3); this checks if the model was correctly instantiated
 
 ### things i like about t5x and SeqIO
-* Being able to checkpoint the data pipeline iterator to restore midway through a run is already implemented in SeqIO
+* Being able to checkpoint the data pipeline iterator to restore midway through a run is already implemented in SeqIO. Set with `utils.SaveCheckpointConfig.save_dataset = True` in the gin config.
 * Can control epochs, not only number of training steps (big downside to the usual tf.data style)
 * gin configurations!
 * Support for cloud storage by default and the insanely great interoperability of `tf.io.gfile` (compared to the Megatron format of storing data as single giant binary files) (also it even supports S3??? wtf)

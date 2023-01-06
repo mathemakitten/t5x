@@ -59,7 +59,7 @@ utils.SaveCheckpointConfig:
 models.DecoderOnlyModel.predict_batch_with_aux.num_decodes = 8
 models.DecoderOnlyModel.inputs_bidirectional_attention = True
 
-partitioning.PjitPartitioner.num_partitions = 4  # Change to 1 for running on a single GPU
+partitioning.PjitPartitioner.num_partitions = 2 #4  # Change to 1 for running on a single GPU
 #partitioning.PjitPartitioner.model_parallel_submesh = (1, 1, 1, 2)
 
 utils.create_learning_rate_scheduler:
