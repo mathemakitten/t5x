@@ -8,6 +8,7 @@ As of January 4, 2023.
 * `gcloud auth login`
 * `conda create -n t5x python=3.8.10`
 * `pip install -e .`
+* `pip install jaxlib==0.4.1+cuda11.cudnn86 -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html`
 * If you get a 403 Forbidden on the storage bucket, do `gcloud auth login --update-adc` to add the service account
 
 ### Test training 
@@ -51,6 +52,14 @@ python t5x/train.py --gin_file="t5x/examples/t5/t5_1_1/examples/base_wmt_from_sc
 ### XLA flags 
 * [NVIDIA](https://github.com/google-research/t5x/pull/952) suggests setting XLA debugging flags with `export XLA_FLAGS='--xla_gpu_simplify_all_fp_conversions --xla_gpu_all_reduce_combine_threshold_bytes=136314880 ${XLA_FLAGS}'`
 * As per [XLA documentation](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/compiler/xla/xla.proto), `xla_gpu_simplify_all_fp_conversions` needs to be set because it "allows all floating-point conversions to be simplified, including those that affect the numerics. The `BFloat16Normalization` pass inserts many `f32 -> bf16 -> f32` conversion pairs. These are not removed by the `AlgebraicSimplifier`, as that will only simplify conversions that are no-ops, e.g. `bf16 -> f32 -> bf16`. Removing these improves accuracy."
+
+### Multi-node setup
+T5X uses `jax.distributed.initialize` (see [here](https://jax.readthedocs.io/en/latest/multi_process.html)) and requires an instance of t5x to be instantiated on each host.
+
+TODO: to verify for Slurm, `Slurm environments, you can simply call jax.distributed.initialize() with no arguments.. When running on GPUs with Slurm, it is assumed that one process is started per GPU, i.e. each process will be assigned only one visible local device.`.
+
+### Implementing a new vocabulary 
+Converts the GPT2 tokenizer to a format compatible with T5X. The Vocabulary abstract class is in `seqio/vocabularies.py`.
 
 ### Misc
 * `model_parallel_submesh` can be an int (for a single GPU) or a 

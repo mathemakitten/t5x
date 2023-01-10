@@ -18,6 +18,8 @@ from t5x import utils
 from t5x import trainer
 import optax
 
+from t5x.seqio.gpt2 import GPT2Vocabulary
+
 MIXTURE_OR_TASK_NAME = %gin.REQUIRED
 TASK_FEATURE_LENGTHS = %gin.REQUIRED
 TRAIN_STEPS = %gin.REQUIRED
@@ -58,7 +60,7 @@ train_script.train:
   inference_evaluator_cls = @seqio.Evaluator
 
 partitioning.PjitPartitioner:
-  num_partitions = 2  # change to 1 for running on a single GPU
+  num_partitions = 1 #2  # change to 1 for running on a single GPU
   model_parallel_submesh = None  # (1, 1, 1, 2)  # model_parallel_submesh and are exclusive of each other
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
 
@@ -70,6 +72,9 @@ LOSS_NORMALIZING_FACTOR = None  # set to pretraining batch_size * target_token_l
 # Vocabulary (shared by encoder and decoder)
 VOCABULARY = @seqio.SentencePieceVocabulary()
 seqio.SentencePieceVocabulary.sentencepiece_model_file = "gs://t5-data/vocabs/cc_all.32000.100extra/sentencepiece.model"
+
+# Vocabulary, using GPT2 vocab
+#VOCABULARY = GPT2Vocabulary()
 
 # ------------------- Optimizer ------------------------------------------------
 # Gin configuration makes it easy by simply importing any available optimizer in t5x/optimizers module.
@@ -194,7 +199,7 @@ utils.SaveCheckpointConfig:
   dtype = 'float32'
   keep = 1  # set to None to keep all checkpoints
   save_dataset = False  # don't checkpoint dataset state
-  period = 5000  # checkpoint frequency
+  period = 10 #5000  # checkpoint frequency
 
 trainer.Trainer:
   num_microbatches = None
