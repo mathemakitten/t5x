@@ -924,7 +924,7 @@ class DecoderOnlyModel(BaseTransformerModel):
       inputs = [9, 4, 6, 1]
       targets = [3, 9, 1]
 
-      seqio.DecoderFeatureConverter will generate these set of features
+      data.DecoderFeatureConverter will generate these set of features
 
          decoder_target_tokens = [9, 4, 6, 1, 3, 9, 1, 0, 0]
           decoder_input_tokens = [0, 9, 4, 6, 1, 3, 9, 1, 0]
@@ -979,7 +979,7 @@ class DecoderOnlyModel(BaseTransformerModel):
     Args:
       params: model parameters.
       batch: batch element with the model features specified in
-        seqio.DecoderFeatureConverter.
+        data.DecoderFeatureConverter.
       rng: an optional RNG key to use during prediction, which is passed as
         'decode_rng' to the decoding function.
       return_all_decodes: if True, will return all batch_size * num_decodes

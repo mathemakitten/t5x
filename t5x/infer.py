@@ -118,7 +118,7 @@ def create_task_from_tfexample_file(paths: Sequence[str],
       (relevant only in scoring mode). The value of this feature should be a
       UTF8-encoded string.
     features: Should have entries for keys 'inputs' and (if targets_key is not
-      None) 'targets', mapping to `seqio.Feature` objects that specify
+      None) 'targets', mapping to `data.Feature` objects that specify
       attributes like vocabulary, add_eos, etc. These attributes are used for
       preprocessing and featurizing the input text.
     task_id: Task name identifier. By default, it is set to a unique and
@@ -383,7 +383,7 @@ def infer(
     checkpoint_ds_iter: if True, will checkpoint the dataset iterator every
       `checkpoint_period` to enable faster restore. This must be disabled for
       certain datasets, for example since stateful iterators (e.g. from
-      seqio.FunctionTask) cannot be checkpointed.
+      data.FunctionTask) cannot be checkpointed.
     train_state_initializer_cls: t5x.utils.TrainStateInitializer class
       for initializing partitioned TrainState from checkpoints or scratch.
     fallback_init_rng: A random seed used for parameter initialization during

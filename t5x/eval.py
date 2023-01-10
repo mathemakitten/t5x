@@ -74,7 +74,7 @@ class InferenceEvaluator:
       infer_eval_dataset_cfg: Specification for the dataset to evaluate with
         using the inference metrics (e.g., uses sampled decoding). If None,
         inference eval is disabled.
-      inference_evaluator_cls: seqio.Evaluator class to use for inference
+      inference_evaluator_cls: data.Evaluator class to use for inference
         evaluation, potentially with bound configuration args.
       model: Model to be evaluated.
       partitioner: the partitioner to use.
@@ -190,7 +190,7 @@ def evaluate(
       load.
     partitioner: Partitioner for the model parameters and data across devices.
     output_dir: Path to directory to write temporary files and final results.
-    inference_evaluator_cls: seqio.Evaluator class to use for inference
+    inference_evaluator_cls: data.Evaluator class to use for inference
       evaluation, potentially with bound configuration args.
     summarize_config_fn: A function that takes in the model directory, an
       optional SummaryWriter, and the step number, and writes a summary of the

@@ -162,7 +162,7 @@ def train(
       for different shardings of the same model.
     summarize_config_fn: A function that takes in the model directory, a
       SummaryWriter, and the step number, and writes a summary of the
-    inference_evaluator_cls: seqio.Evaluator class to use for inference
+    inference_evaluator_cls: data.Evaluator class to use for inference
       evaluation, potentially with bound configuration args.
     get_dataset_fn: The callable use to get the train and train-eval datasets
       based on the DatasetConfig and shard information.

@@ -192,7 +192,7 @@ class MoeDecoderOnlyModel(base_models.DecoderOnlyModel):
     Args:
       params: Model parameters.
       batch: Batch of inputs with the model features specified in
-        seqio.DecoderFeatureConverter.
+        data.DecoderFeatureConverter.
       rng: RNG key to use during prediction.
       return_all_decodes: Whether to return the entire beam or just the top-1.
       num_decodes: Number of decoded sequences to be returned.

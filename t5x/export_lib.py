@@ -387,7 +387,7 @@ def create_preprocessor(
   Args:
     batch_size: Batch size for model to process. If None, then batch
       polymorphism is invoked.
-    output_features: Mapping from 'inputs' and 'targets' to seqio.Feature.
+    output_features: Mapping from 'inputs' and 'targets' to data.Feature.
     task_feature_lengths: Mapping from 'inputs' and 'targets' to sequence
       lengths.
     tokenized_inputs: specifies whether the input is expected to be
@@ -421,7 +421,7 @@ def create_preprocessor(
 
     # TODO(b/188656799): Generalize this code to work with arbitrary models.
     def featurize(text, k):
-      """Replicates what tokenization + seqio.EncDecFeatureConverter does, without Dataset."""
+      """Replicates what tokenization + data.EncDecFeatureConverter does, without Dataset."""
       vocab = output_features[k].vocabulary  # type: seqio.Vocabulary
       length = task_feature_lengths[k]
       if not tokenized_inputs:  # if inputs are tokenized, we don't re-tokenize.
@@ -430,7 +430,7 @@ def create_preprocessor(
         t = text
       if output_features[k].add_eos:
         # The following matches the default behavior of the prediction server,
-        # which uses seqio.preprocessors.append_eos_after_trim, implemented at:
+        # which uses data.preprocessors.append_eos_after_trim, implemented at:
         # https://github.com/google/seqio/tree/main/seqio/preprocessors.py;l=250;rcl=480228505
         t = tf.concat([t[:length - 1], [vocab.eos_id]], axis=0)
       t = t[:length]
@@ -525,7 +525,7 @@ def create_decoder_preprocessor(
   """Returns a function to tokenize and featurize inputs for decoder only models.
 
   Args:
-    output_features: Mapping from 'inputs' and 'targets' to seqio.Feature.
+    output_features: Mapping from 'inputs' and 'targets' to data.Feature.
     task_feature_lengths: Mapping from 'inputs' and 'targets' to sequence
       lengths.
     tokenized_inputs: specifies whether the input is expected to be
@@ -660,7 +660,7 @@ def _feature_description_from_element_spec(element_spec):
 
 
 class PreprocessorFnFromTask(object):
-  """A PreprocessorFn based on seqio.Task."""
+  """A PreprocessorFn based on data.Task."""
 
   def __init__(
       self,
@@ -692,7 +692,7 @@ class PreprocessorFnFromTask(object):
     self.trackable_resources = list()
     for p in self.task.preprocessors:
       # TODO(dinghua): We should have a more formal API for getting the
-      #                trackable members from a seqio preprocessor.
+      #                trackable members from a data preprocessor.
       for _, tr in inspect.getmembers(p, is_trackable_resource):
         self.trackable_resources.append(tr)
 
@@ -740,7 +740,7 @@ def create_preprocessor_from_task(
     run_precache: bool = False,
     input_tensor_name: str = 'text_batch',
 ) -> Tuple[PreprocessorFn, Sequence[tf.TensorSpec]]:
-  """Create a preprocessor based on a seqio task."""
+  """Create a preprocessor based on a data task."""
   del output_features
   return PreprocessorFnFromTask(
       batch_size, model, task_feature_lengths, task_name, serialized_examples,

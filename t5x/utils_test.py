@@ -379,7 +379,7 @@ class UtilsTest(parameterized.TestCase):
 
   @mock.patch.object(utils, "get_dataset")
   def test_get_training_eval_datasets_mixture_obj(self, mock_get_dataset):
-    # Verify calls to utils.dataset using seqio.Task or seqio.Mixture
+    # Verify calls to utils.dataset using data.Task or data.Mixture
     # Register a mock SeqIO mixture.
     task3 = mock.create_autospec(seqio.Task, instance=True)
     task3.name = "mock_task3"

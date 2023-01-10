@@ -69,7 +69,7 @@ get_local_data = checkpoints.get_local_data
 class EvaluatorConstructor(typing_extensions.Protocol):
   """A function that returns an Evaluator.
 
-  This protocol represents the actual callsite for the seqio.Evaluator c'tor
+  This protocol represents the actual callsite for the data.Evaluator c'tor
   in this file. It allows users to bind additional args with partial() and
   pass that partial into the fn without causing type check issues.
   """
@@ -85,13 +85,13 @@ class EvaluatorConstructor(typing_extensions.Protocol):
       log_dir: Optional[str],
       use_memory_cache: bool,
   ) -> seqio.Evaluator:
-    """The call for the seqio.Evaluator c'tor in this file.
+    """The call for the data.Evaluator c'tor in this file.
 
     Args:
       mixture_or_task_name: a registered task or mixture name.
       feature_converter: a feature converter object to use to convert the task
         features to model features. Must be a subclass of
-        seqio.FeatureConverter.
+        data.FeatureConverter.
       eval_split: evaluation split. Typically "validation" or "test".
       use_cached: whether to use the cached dataset instead of processing it on
         the fly.
@@ -111,7 +111,7 @@ class EvaluatorConstructor(typing_extensions.Protocol):
         issues for large datasets.
 
     Returns:
-      A seqio.Evaluator.
+      A data.Evaluator.
     """
     ...
 
@@ -1333,7 +1333,7 @@ def get_infer_fn(infer_step: InferStepCallable, batch_size: int,
       logging.info(
           'Padding infer dataset with %d examples for even per-replica shards.',
           dataset_pad_amt)
-      # Pad with the first example using an index of -1 so seqio will ignore.
+      # Pad with the first example using an index of -1 so data will ignore.
       pad_ds = ds.take(1).map(lambda i, x: (np.int64(-1), x)).cache().repeat(
           dataset_pad_amt)
       ds = ds.concatenate(pad_ds)
@@ -1479,14 +1479,14 @@ def import_module(module: str):
 
 def get_vocabulary(
     cfg: DatasetConfig) -> Tuple[seqio.Vocabulary, seqio.Vocabulary]:
-  """Returns `seqio.Vocabulary` objects associated with the `Mixture`/`Task`.
+  """Returns `data.Vocabulary` objects associated with the `Mixture`/`Task`.
 
   Args:
     cfg: the DatasetConfig specifying which mixture or task to get the
       vocabularies for.
 
   Returns:
-    A tuple of seqio.Vocabulary for inputs and targets.
+    A tuple of data.Vocabulary for inputs and targets.
 
   Raises:
     ValueError: if inputs and targets are not both present and vocabularies
@@ -1536,7 +1536,7 @@ def get_vocabulary(
 def verify_matching_vocabs(cfg: DatasetConfig, model: Any):
   """Verify whether the task vocab matches the model vocab.
 
-  The seqio Task and the Model both define their vocabularies
+  The data Task and the Model both define their vocabularies
   separately, but these vocabularies must match or else the training/inference
   results will not be sensible. This functions validates that they do match,
   under the assumption that this is a standard Encoder-only, Decoder-only,

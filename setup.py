@@ -56,7 +56,7 @@ setuptools.setup(
         'jestimator',
         'numpy',
         'orbax @ git+https://github.com/google/orbax#egg=orbax',
-        'seqio @ git+https://github.com/google/seqio#egg=seqio',
+        'data @ git+https://github.com/google/seqio#egg=seqio',
         't5',
         'tensorflow-cpu',
         'tensorstore >= 0.1.20',
