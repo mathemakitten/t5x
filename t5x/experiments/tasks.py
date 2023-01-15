@@ -1,6 +1,7 @@
 import io
 import os
 
+import functools
 import jsonlines
 import seqio
 import tensorflow as tf
@@ -128,8 +129,8 @@ class Pile(tfds.core.GeneratorBasedBuilder):
                 'validation': self._generate_examples(path=dl_paths['validation']),
                 'test': self._generate_examples(path=dl_paths['test'])}
 
-    def _generate_examples(self, paths):
-        pipeline = PileReader(paths)
+    def _generate_examples(self, path):
+        pipeline = PileReader(path)
         for x, result in enumerate(pipeline):
             if result:
                 idx = f'{x}_pile'
@@ -142,16 +143,27 @@ import tensorflow_datasets as tfds
 # Make the builder store the data as a TFDS dataset.
 # builder.download_and_prepare()
 
-# tfds.load(name="pile")
+def read_and_parse(dataset):
+    def _parse(x):
+        print("WHAT IS X???")
+        print(x['text'])
+        return {'targets': x['text']}
+
+    return dataset.map(_parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+ds = tfds.load(name="pile", data_dir=_GCS_BUCKET, split='train')
 seqio.TaskRegistry.add("pile",
                        seqio.TfdsDataSource(tfds_name="pile/lm:1.0.0"),
-                       preprocessors=[
+                       preprocessors=[ #functools.partial(translate, source_language='en', target_language='de')
+                           functools.partial(read_and_parse),
                            seqio.preprocessors.tokenize,
-                           seqio.CacheDatasetPlaceholder(),
-                           seqio.preprocessors.append_eos
+                           # seqio.CacheDatasetPlaceholder(),
+                           # seqio.preprocessors.append_eos
                        ],
                        output_features={
                            'targets': seqio.Feature(gpt2_encoder.GPT2Vocabulary(), add_eos=True, dtype=tf.int32)
                        },
-                       metric_fns=[metrics.bleu]  # TODO(helen): do this.
+                       metric_fns=[metrics.bleu]  # TODO(helen): fix this.
                        )
+task = seqio.TaskRegistry.get('pile')
+ds = task.get_dataset(sequence_length=None, split="train", shuffle=False, use_cached=False)

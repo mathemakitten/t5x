@@ -157,6 +157,9 @@ def register_dataset():
                            },
                            metric_fns=[]  # TODO(helen): do this.
                            )
+    # task = seqio.TaskRegistry.get('pile')
+    # ds = task.get_dataset(sequence_length=None, split="train", shuffle=False)
+    # print('hello')
 
     # ds = seqio.get_dataset(mixture_or_task_name="pile",
     #                        task_feature_lengths={"inputs": 32, "targets": 32},
