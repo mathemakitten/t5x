@@ -260,6 +260,10 @@ def train(
   # Initialize datasets
   # ---------------------------------------------------------------------------
 
+  # Init custom dataset
+  from t5x.seqio_pipeline import register_dataset
+  register_dataset()
+
   if (train_dataset_cfg.seed and
       not (checkpoint_cfg.save and checkpoint_cfg.save.save_dataset)):
     logging.warning(
@@ -290,6 +294,10 @@ def train(
   input_shapes = jax.tree_map(lambda x: (data_layout.batch_size, *x.shape[1:]),
                               train_iter.element_spec)
   input_types = jax.tree_map(lambda x: x.dtype, train_iter.element_spec)
+
+  # If you want to see the actual data right before it goes into the model, uncomment
+  # print(f"data: {next(iter(train_iter))}")
+  # exit()
 
   if train_eval_dataset_cfg:
     _verify_matching_vocabs(train_eval_dataset_cfg)

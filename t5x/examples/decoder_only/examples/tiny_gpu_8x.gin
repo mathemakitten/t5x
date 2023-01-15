@@ -18,7 +18,7 @@ from t5x import utils
 from t5x import trainer
 import optax
 
-#from t5x.data.gpt2 import GPT2Vocabulary
+from t5x.data import gpt2_encoder
 
 MIXTURE_OR_TASK_NAME = %gin.REQUIRED
 TASK_FEATURE_LENGTHS = %gin.REQUIRED
@@ -36,6 +36,7 @@ USE_HARDWARE_RNG = False
 RANDOM_SEED = None  # None always uses faster, hardware RNG
 
 MIXTURE_OR_TASK_NAME = "wmt_t2t_ende_v003"
+MIXTURE_OR_TASK_NAME = "pile"
 TASK_FEATURE_LENGTHS = {"inputs": 1024, "targets": 1024}  # sequence length; shorter will be truncated
 TRAIN_STEPS = 50000
 
@@ -74,7 +75,7 @@ VOCABULARY = @seqio.SentencePieceVocabulary()
 seqio.SentencePieceVocabulary.sentencepiece_model_file = "gs://t5-data/vocabs/cc_all.32000.100extra/sentencepiece.model"
 
 # Vocabulary, using GPT2 vocab
-#VOCABULARY = GPT2Vocabulary()
+VOCABULARY = @gpt2_encoder.GPT2Vocabulary()
 
 # ------------------- Optimizer ------------------------------------------------
 # Gin configuration makes it easy by simply importing any available optimizer in t5x/optimizers module.

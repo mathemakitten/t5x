@@ -6,6 +6,7 @@ import regex as re
 from typing import Optional, Sequence, Iterable, Union
 import tensorflow as tf
 
+# TODO(helen): look into replacing this with the HF tokenizer `GPT2TokenizerFast.from_pretrained('gpt2')`
 
 def bytes_to_unicode():
     """
@@ -64,15 +65,15 @@ class GPT2Vocabulary(Vocabulary):
         self.pat = re.compile(r"""'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
 
     def eos_id(self) -> Optional[int]:
-        raise 50256
+        return 50256
 
     # @property
     # def pad_id(self) -> int:
     #   return PAD_ID
     #
-    # @abc.abstractproperty
-    # def unk_id(self) -> Optional[int]:
-    #   raise NotImplementedError("need to implement unk_id")
+
+    def unk_id(self) -> Optional[int]:
+      return 50256  # TODO(helen): FIX THIS
 
     # @property
     # def extra_ids(self) -> int:

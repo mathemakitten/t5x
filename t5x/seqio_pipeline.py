@@ -1,18 +1,19 @@
-""" A fixed version of https://github.com/EleutherAI/The-Pile/blob/master/the_pile/tfds_pile.py """
-
 import io
 import os
-import time
 
 import jsonlines
+import seqio
 import tensorflow as tf
 import zstandard
 
-_GCS_BUCKET = None  # whatever your gs:// bucket is
+#from  import GPT2Vocabulary
+from t5x.data import gpt2_encoder
+
+_GCS_BUCKET = 'gs://hugginghelen/t5x-test/pile'
 os.environ['TFDS_DATA_DIR'] = _GCS_BUCKET
 import tensorflow_datasets as tfds
-# from the_pile import tfds_pile
-from transformers import GPT2TokenizerFast
+
+#from the_pile import tfds_pile
 
 try:
     import simdjson as json
@@ -42,7 +43,7 @@ lol = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09']
 lmao = [str(j) for j in range(10, 30)]
 # lol.pop(1)  # remove this for now it's crashing
 _URLS = {
-    'the_pile': {
+    'pile': {
         'train': [_PILE_URL.format(str(i).zfill(2)) for i in lol + lmao],
         'test': 'https://the-eye.eu/public/AI/pile/test.jsonl.zst',
         'validation': 'https://the-eye.eu/public/AI/pile/val.jsonl.zst',
@@ -54,7 +55,7 @@ _RELEASE_NOTES = {
     '1.0.0': 'Initial release.',
 }
 
-_NAME = 'the_pile'
+_NAME = 'pile'
 _FILE_FORMAT = 'jsonlines'
 
 
@@ -102,7 +103,7 @@ class ThePileConfig(tfds.core.BuilderConfig):
             **kwargs)
 
 
-class ThePile(tfds.core.GeneratorBasedBuilder):
+class Pile(tfds.core.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         ThePileConfig(version=_VERSION, mode=mode) for mode in _DATASET_MODES
     ]
@@ -121,7 +122,7 @@ class ThePile(tfds.core.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager: tfds.download.DownloadManager):
         dl_manager.verify_ssl = False
-        dl_paths = dl_manager.download(_URLS['the_pile'])
+        dl_paths = dl_manager.download(_URLS['pile'])
         return [
             tfds.core.SplitGenerator(
                 name=tfds.Split.TRAIN,
@@ -138,21 +139,34 @@ class ThePile(tfds.core.GeneratorBasedBuilder):
         pipeline = PileReader(paths)
         for x, result in enumerate(pipeline):
             if result:
-                idx = f'{x}_the_pile'
+                idx = f'{x}_pile'
                 yield idx, {'text': result['text']}
 
 
-def simple_tokenization(item):
-    return tokenizer.encode(item['text'].numpy().decode("utf-8"), return_tensors='tf')  #TODO(helen): fix this for use in graph mode
+# Define a task
+def register_dataset():
+    _GCS_BUCKET = 'gs://hugginghelen/t5x-test'
+    tfds.load(name="pile", data_dir=_GCS_BUCKET, split='train')
+    seqio.TaskRegistry.add("pile",
+                           seqio.TfdsDataSource(tfds_name="pile/lm:1.0.0"),
+                           preprocessors=[
+                               seqio.preprocessors.tokenize, seqio.preprocessors.append_eos
+                           ],
+                           output_features={
+                               'targets': seqio.Feature(gpt2_encoder.GPT2Vocabulary(), add_eos=True, dtype=tf.int32)
+                           },
+                           metric_fns=[]  # TODO(helen): do this.
+                           )
 
-tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
-tokenizer.add_special_tokens({'pad_token': '<|padding|>'})
+    ds = seqio.get_dataset(mixture_or_task_name="pile",
+                           task_feature_lengths={"inputs": 32, "targets": 32},
+                           dataset_split="train",
+                           shuffle=True,
+                           feature_converter=seqio.DecoderFeatureConverter(pack=True)
+                           )
 
-st = time.time()
-ds = tfds.load(name="ThePile", data_dir=_GCS_BUCKET, split='train')
-print(f"Time to load dataset: {time.time() - st}")
+# Define a FeatureConverter based on the model architecture.
 
-st = time.time()
-ds.map(lambda item: simple_tokenization(item), num_parallel_calls=10)
+# Use the top-level function seqio.get_dataset to obtain the tf.data.Dataset instance.
 
-print(f"Time to tokenize: {time.time() - st}")
+print('hello')
