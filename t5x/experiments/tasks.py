@@ -1,9 +1,3 @@
-import seqio
-import tensorflow as tf
-from t5.evaluation import metrics
-
-from t5x.data import gpt2_encoder
-
 import io
 import os
 
@@ -11,8 +5,9 @@ import jsonlines
 import seqio
 import tensorflow as tf
 import zstandard
+from t5.evaluation import metrics
 
-#from  import GPT2Vocabulary
+# from  import GPT2Vocabulary
 from t5x.data import gpt2_encoder
 
 _GCS_BUCKET = 'gs://hugginghelen/t5x-test/pile'
@@ -129,17 +124,9 @@ class Pile(tfds.core.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: tfds.download.DownloadManager):
         dl_manager.verify_ssl = False
         dl_paths = dl_manager.download(_URLS['pile'])
-        return [
-            tfds.core.SplitGenerator(
-                name=tfds.Split.TRAIN,
-                gen_kwargs={"paths": dl_paths['train']}),
-            tfds.core.SplitGenerator(
-                name=tfds.Split.VALIDATION,
-                gen_kwargs={"paths": dl_paths['validation']}),
-            tfds.core.SplitGenerator(
-                name=tfds.Split.TEST,
-                gen_kwargs={"paths": dl_paths['test']}),
-        ]
+        return {'train': self._generate_examples(path=dl_paths['train']),
+                'validation': self._generate_examples(path=dl_paths['validation']),
+                'test': self._generate_examples(path=dl_paths['test'])}
 
     def _generate_examples(self, paths):
         pipeline = PileReader(paths)
@@ -148,11 +135,20 @@ class Pile(tfds.core.GeneratorBasedBuilder):
                 idx = f'{x}_pile'
                 yield idx, {'text': result['text']}
 
-ds = tfds.load(name="pile", data_dir=_GCS_BUCKET, split='train')
+import tensorflow_datasets as tfds
+
+# Define the builder.
+# builder = Pile()
+# Make the builder store the data as a TFDS dataset.
+# builder.download_and_prepare()
+
+# tfds.load(name="pile")
 seqio.TaskRegistry.add("pile",
                        seqio.TfdsDataSource(tfds_name="pile/lm:1.0.0"),
                        preprocessors=[
-                           seqio.preprocessors.tokenize, seqio.preprocessors.append_eos
+                           seqio.preprocessors.tokenize,
+                           seqio.CacheDatasetPlaceholder(),
+                           seqio.preprocessors.append_eos
                        ],
                        output_features={
                            'targets': seqio.Feature(gpt2_encoder.GPT2Vocabulary(), add_eos=True, dtype=tf.int32)
