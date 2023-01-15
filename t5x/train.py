@@ -260,10 +260,6 @@ def train(
   # Initialize datasets
   # ---------------------------------------------------------------------------
 
-  # Init custom dataset
-  from t5x.seqio_pipeline import register_dataset
-  register_dataset()
-
   if (train_dataset_cfg.seed and
       not (checkpoint_cfg.save and checkpoint_cfg.save.save_dataset)):
     logging.warning(

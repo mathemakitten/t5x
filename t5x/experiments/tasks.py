@@ -1,3 +1,9 @@
+import seqio
+import tensorflow as tf
+from t5.evaluation import metrics
+
+from t5x.data import gpt2_encoder
+
 import io
 import os
 
@@ -142,48 +148,14 @@ class Pile(tfds.core.GeneratorBasedBuilder):
                 idx = f'{x}_pile'
                 yield idx, {'text': result['text']}
 
-
-# Define a task
-def register_dataset():
-    _GCS_BUCKET = 'gs://hugginghelen/t5x-test'
-    tfds.load(name="pile", data_dir=_GCS_BUCKET, split='train')
-    seqio.TaskRegistry.add("pile",
-                           seqio.TfdsDataSource(tfds_name="pile/lm:1.0.0"),
-                           preprocessors=[
-                               seqio.preprocessors.tokenize, seqio.preprocessors.append_eos
-                           ],
-                           output_features={
-                               'targets': seqio.Feature(gpt2_encoder.GPT2Vocabulary(), add_eos=True, dtype=tf.int32)
-                           },
-                           metric_fns=[]  # TODO(helen): do this.
-                           )
-
-    # ds = seqio.get_dataset(mixture_or_task_name="pile",
-    #                        task_feature_lengths={"inputs": 32, "targets": 32},
-    #                        dataset_split="train",
-    #                        shuffle=True,
-    #                        feature_converter=seqio.DecoderFeatureConverter(pack=True)
-    #                        )
-
-# Define a FeatureConverter based on the model architecture.
-
-# Use the top-level function seqio.get_dataset to obtain the tf.data.Dataset instance.
-
-from transformers import GPT2TokenizerFast
-import time
-
-def simple_tokenization(item):
-    return tokenizer.encode(tf.strings.as_string(item['text']).decode("utf-8"), return_tensors='tf')
-
-tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
-tokenizer.add_special_tokens({'pad_token': '<|padding|>'})
-
-st = time.time()
 ds = tfds.load(name="pile", data_dir=_GCS_BUCKET, split='train')
-print(f"Time to load dataset: {time.time() - st}")
-
-st = time.time()
-ds.map(lambda item: simple_tokenization(item), num_parallel_calls=10)
-
-
-print('hello')
+seqio.TaskRegistry.add("pile",
+                       seqio.TfdsDataSource(tfds_name="pile/lm:1.0.0"),
+                       preprocessors=[
+                           seqio.preprocessors.tokenize, seqio.preprocessors.append_eos
+                       ],
+                       output_features={
+                           'targets': seqio.Feature(gpt2_encoder.GPT2Vocabulary(), add_eos=True, dtype=tf.int32)
+                       },
+                       metric_fns=[metrics.bleu]  # TODO(helen): do this.
+                       )
