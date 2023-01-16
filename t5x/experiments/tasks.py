@@ -129,12 +129,17 @@ class Pile(tfds.core.GeneratorBasedBuilder):
                 'validation': self._generate_examples(path=dl_paths['validation']),
                 'test': self._generate_examples(path=dl_paths['test'])}
 
+    def _int64_feature(self, value):
+        return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
+
     def _generate_examples(self, path):
         pipeline = PileReader(path)
+        encoder = gpt2_encoder.GPT2Vocabulary()
+
         for x, result in enumerate(pipeline):
             if result:
                 idx = f'{x}_pile'
-                yield idx, {'text': result['text']}
+                yield idx, {'text': result['text']} #{'text': self._int64_feature(encoder.encode(result['text']))}
 
 import tensorflow_datasets as tfds
 
@@ -142,15 +147,14 @@ import tensorflow_datasets as tfds
 # builder = Pile()
 # Make the builder store the data as a TFDS dataset.
 # builder.download_and_prepare()
+@seqio.map_over_dataset
+def read_and_parse(x):
+    print(f"what is x??? {x}")
+    return {'inputs': x['text'],
+            'targets': x['text']
+            }
 
-def read_and_parse(dataset):
-    def _parse(x):
-        print("WHAT IS X???")
-        print(x['text'])
-        return {'targets': x['text']}
-
-    return dataset.map(_parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-
+# seqio.TaskRegistry.reset()
 ds = tfds.load(name="pile", data_dir=_GCS_BUCKET, split='train')
 seqio.TaskRegistry.add("pile",
                        seqio.TfdsDataSource(tfds_name="pile/lm:1.0.0"),
@@ -161,6 +165,8 @@ seqio.TaskRegistry.add("pile",
                            # seqio.preprocessors.append_eos
                        ],
                        output_features={
+                        # TODO: inputs is unnecessary when using decoder featureconverter
+                           'inputs': seqio.Feature(gpt2_encoder.GPT2Vocabulary(), add_eos=True, dtype=tf.int32),
                            'targets': seqio.Feature(gpt2_encoder.GPT2Vocabulary(), add_eos=True, dtype=tf.int32)
                        },
                        metric_fns=[metrics.bleu]  # TODO(helen): fix this.

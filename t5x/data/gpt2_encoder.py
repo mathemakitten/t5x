@@ -29,6 +29,17 @@ def bytes_to_unicode():
     cs = [chr(n) for n in cs]
     return dict(zip(bs, cs))
 
+def get_pairs(word):
+    """Return set of symbol pairs in a word.
+    Word is represented as tuple of symbols (symbols being variable-length strings).
+    """
+    pairs = set()
+    prev_char = word[0]
+    for char in word[1:]:
+        pairs.add((prev_char, char))
+        prev_char = char
+    return pairs
+
 
 class GPT2Vocabulary(Vocabulary):
     """Abstract class for all vocabularies.
@@ -63,6 +74,47 @@ class GPT2Vocabulary(Vocabulary):
 
         # Should haved added re.IGNORECASE so BPE merges can happen for capitalized versions of contractions
         self.pat = re.compile(r"""'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
+
+    def bpe(self, token):
+        if token in self.cache:
+            return self.cache[token]
+        word = tuple(token)
+        pairs = get_pairs(word)
+
+        if not pairs:
+            return token
+
+        while True:
+            bigram = min(pairs, key=lambda pair: self.bpe_ranks.get(pair, float('inf')))
+            if bigram not in self.bpe_ranks:
+                break
+            first, second = bigram
+            new_word = []
+            i = 0
+            while i < len(word):
+                try:
+                    j = word.index(first, i)
+                    new_word.extend(word[i:j])
+                    i = j
+                except:
+                    new_word.extend(word[i:])
+                    break
+
+                if word[i] == first and i < len(word) - 1 and word[i + 1] == second:
+                    new_word.append(first + second)
+                    i += 2
+                else:
+                    new_word.append(word[i])
+                    i += 1
+            new_word = tuple(new_word)
+            word = new_word
+            if len(word) == 1:
+                break
+            else:
+                pairs = get_pairs(word)
+        word = ' '.join(word)
+        self.cache[token] = word
+        return word
 
     def eos_id(self) -> Optional[int]:
         return 50256
@@ -125,7 +177,24 @@ class GPT2Vocabulary(Vocabulary):
         return self._decode(clean_ids)
 
     def _encode_tf(self, s: tf.Tensor) -> tf.Tensor:
-        return tf.convert_to_tensor(self._encode(s), dtype=tf.int32)
+        """Encode a tf.Scalar string to a tf.Tensor.
+
+            Args:
+              s: a tf.Scalar with dtype tf.string
+            Returns:
+              a 1d tf.Tensor with dtype tf.int32
+        """
+
+        """
+        text = s
+        bpe_tokens = []
+        for token in re.findall(self.pat, text):
+            token = ''.join(self.byte_encoder[b] for b in token.encode('utf-8'))
+            bpe_tokens.extend(self.encoder[bpe_token] for bpe_token in self.bpe(token).split(' '))
+        return bpe_tokens
+        """
+        tf_ids = tf.io.decode_raw(s, tf.uint8)
+        return tf.dtypes.cast(tf_ids, tf.int32)
 
     def encode_tf(self, s: tf.Tensor) -> tf.Tensor:
         """Tokenizes string Scalar to an int32 Tensor, without adding EOS."""
