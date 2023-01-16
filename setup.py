@@ -72,7 +72,7 @@ setuptools.setup(
         'tpu': [f'jax[tpu] >= {_jax_version}'],
 
         # If you want to use the hacky-but-fast TFDS data loader for The Pile
-        'pile': ['lmformat', 'jsonlines', 'gdown', 'concurrent_iterator', 'pytablewriter', 'gitpython', 'fasttext', 'best-download', 'gsutil']
+        'pile': ['lm_dataformat', 'jsonlines', 'gdown', 'concurrent_iterator', 'pytablewriter', 'gitpython', 'fasttext', 'best-download', 'gsutil']
     },
     classifiers=[
         'Development Status :: 4 - Beta',
