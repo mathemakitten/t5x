@@ -1,5 +1,5 @@
 # Decoder-only model (Base) with 109632768 parameters. Runs on 8 A100s (for bfloat16), designed to mirror training smallest GPT on a v3-8.
-# Run command: python t5x/train.py --gin_file="t5x/examples/decoder_only/examples/tiny_gpu_8x.gin" --gin.MODEL_DIR=\"${MODEL_DIR}\" --tfds_data_dir=${TFDS_DATA_DIR}
+# Run command: python t5x/train.py --gin_search_paths=${PROJECT_DIR} --gin_file="t5x/experiments/tiny_gpu_8x.gin" --gin.MODEL_DIR=\"${MODEL_DIR}\" --tfds_data_dir=${TFDS_DATA_DIR}
 
 from __gin__ import dynamic_registration
 

@@ -11,7 +11,7 @@ from t5.evaluation import metrics
 # from  import GPT2Vocabulary
 from t5x.data import gpt2_encoder
 
-_GCS_BUCKET = 'gs://hugginghelen/t5x-test/pile'
+_GCS_BUCKET = '/gpfswork/tfds' # 'gs://hugginghelen/t5x-test/pile'
 os.environ['TFDS_DATA_DIR'] = _GCS_BUCKET
 import tensorflow_datasets as tfds
 
