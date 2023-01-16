@@ -149,12 +149,20 @@ import tensorflow_datasets as tfds
 # builder.download_and_prepare()
 @seqio.map_over_dataset
 def read_and_parse(x):
-    print(f"what is x??? {x}")
+    # print(f"what is x??? {x}")
     return {'inputs': x['text'],
             'targets': x['text']
             }
 
 # seqio.TaskRegistry.reset()
+
+vocabulary = seqio.SentencePieceVocabulary(
+    'gs://t5-data/vocabs/cc_all.32000/sentencepiece.model', extra_ids=100)
+output_features = {
+    'inputs': seqio.Feature(vocabulary=vocabulary),
+    'targets': seqio.Feature(vocabulary=vocabulary)
+}
+
 ds = tfds.load(name="pile", data_dir=_GCS_BUCKET, split='train')
 seqio.TaskRegistry.add("pile",
                        seqio.TfdsDataSource(tfds_name="pile/lm:1.0.0"),
@@ -164,12 +172,15 @@ seqio.TaskRegistry.add("pile",
                            # seqio.CacheDatasetPlaceholder(),
                            # seqio.preprocessors.append_eos
                        ],
-                       output_features={
+                       output_features=output_features,
                         # TODO: inputs is unnecessary when using decoder featureconverter
-                           'inputs': seqio.Feature(gpt2_encoder.GPT2Vocabulary(), add_eos=True, dtype=tf.int32),
-                           'targets': seqio.Feature(gpt2_encoder.GPT2Vocabulary(), add_eos=True, dtype=tf.int32)
-                       },
+                        #    'inputs': seqio.Feature(gpt2_encoder.GPT2Vocabulary(), add_eos=True, dtype=tf.int32),
+                        #    'targets': seqio.Feature(gpt2_encoder.GPT2Vocabulary(), add_eos=True, dtype=tf.int32)
                        metric_fns=[metrics.bleu]  # TODO(helen): fix this.
                        )
 task = seqio.TaskRegistry.get('pile')
-ds = task.get_dataset(sequence_length=None, split="train", shuffle=False, use_cached=False)
+ds = task.get_dataset(
+    sequence_length={"inputs": 1024, "targets": 1024},
+    # sequence_length=None,
+    #                   split="train",
+                      shuffle=False, use_cached=False)

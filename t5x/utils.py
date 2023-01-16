@@ -1553,16 +1553,16 @@ def verify_matching_vocabs(cfg: DatasetConfig, model: Any):
   pass
   ds_vocabs = get_vocabulary(cfg)
 
-  if ds_vocabs[0] != model.input_vocabulary:
-    print("case 0")
-    print(ds_vocabs[0])
-    print(model.input_vocabulary)
-    print(ds_vocabs[0] == model.input_vocabulary)
-    print("END")
-  elif ds_vocabs[1] != model.output_vocabulary:
-    print("case 1")
+  # if ds_vocabs[0] != model.input_vocabulary:
+  #   print("case 0")
+  #   print(ds_vocabs[0])
+  #   print(model.input_vocabulary)
+  #   print(ds_vocabs[0] == model.input_vocabulary)
+  #   print("END")
+  # elif ds_vocabs[1] != model.output_vocabulary:
+  #   print("case 1")
 
-  """
+
   if (ds_vocabs[0] != model.input_vocabulary or
       ds_vocabs[1] != model.output_vocabulary):
     raise ValueError(f'Model and Task vocabularies do not match:\n'
@@ -1570,7 +1570,7 @@ def verify_matching_vocabs(cfg: DatasetConfig, model: Any):
                      f'  ds_vocabs=({ds_vocabs[0]}, {ds_vocabs[1]})\n'
                      f'  model.input_vocabulary={model.input_vocabulary}\n'
                      f'  model.output_vocabulary={model.output_vocabulary}\n')
-  """
+
 
 
 
