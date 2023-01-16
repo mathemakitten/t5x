@@ -1,4 +1,4 @@
-# Decoder-only model (Base) with 134307072 parameters. Runs on 8 A100s (for bfloat16), designed to mirror training smallest GPT on a v3-8.
+# Decoder-only model (Base) with 109632768 parameters. Runs on 8 A100s (for bfloat16), designed to mirror training smallest GPT on a v3-8.
 # Run command: python t5x/train.py --gin_file="t5x/examples/decoder_only/examples/tiny_gpu_8x.gin" --gin.MODEL_DIR=\"${MODEL_DIR}\" --tfds_data_dir=${TFDS_DATA_DIR}
 
 from __gin__ import dynamic_registration
@@ -26,7 +26,7 @@ MIXTURE_OR_TASK_NAME = %gin.REQUIRED
 TASK_FEATURE_LENGTHS = %gin.REQUIRED
 TRAIN_STEPS = %gin.REQUIRED
 MODEL_DIR = %gin.REQUIRED
-BATCH_SIZE = 8  # global batch size
+BATCH_SIZE = 72 #64  # global batch size
 USE_CACHED_TASKS = True
 
 # DEPRECATED: Import the this module in your gin file.
@@ -40,7 +40,7 @@ RANDOM_SEED = None  # None always uses faster, hardware RNG
 MIXTURE_OR_TASK_NAME = "wmt_t2t_ende_v003"
 MIXTURE_OR_TASK_NAME = "pile"
 TASK_FEATURE_LENGTHS = {"inputs": 1024, "targets": 1024}  # sequence length; shorter will be truncated
-TRAIN_STEPS = 50000
+TRAIN_STEPS = 200000
 
 train_script.train:
   # from pretrain.gin
@@ -55,16 +55,16 @@ train_script.train:
   summarize_config_fn = @gin_utils.summarize_gin_config
 
   run_eval_before_training = True  # Assert that `loss_per_nonpadding_target_token` makes sense given the vocabulary size
-  eval_period = 500
+  eval_period = 5000
   eval_steps = 20
   random_seed = 0
   use_hardware_rng = True
-  infer_eval_dataset_cfg = @infer_eval/utils.DatasetConfig()
-  inference_evaluator_cls = @seqio.Evaluator
+  infer_eval_dataset_cfg = None # @infer_eval/utils.DatasetConfig()
+  inference_evaluator_cls = None #@seqio.Evaluator
 
 partitioning.PjitPartitioner:
-  num_partitions = 1 #2  # change to 1 for running on a single GPU
-  model_parallel_submesh = None  # (1, 1, 1, 2)  # model_parallel_submesh and are exclusive of each other
+  num_partitions = None #1 #2  # change to 1 for running on a single GPU
+  model_parallel_submesh = (1, 1, 1, 1)  # model_parallel_submesh and are exclusive of each other
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
 
 # ------------------- Loss HParam ----------------------------------------------
@@ -178,19 +178,21 @@ train_eval/utils.DatasetConfig:
   pack = True
   seed = 0
 
-infer_eval/utils.DatasetConfig:
-  mixture_or_task_name = %MIXTURE_OR_TASK_NAME
-  task_feature_lengths = %TASK_FEATURE_LENGTHS  # set to None to compute max
-  split = "validation"
-  seed = 0
-  batch_size = %BATCH_SIZE
-  shuffle = False
-  use_cached = False
+# Comment this back in later
+#infer_eval/utils.DatasetConfig:
+#  mixture_or_task_name = %MIXTURE_OR_TASK_NAME
+#  task_feature_lengths = %TASK_FEATURE_LENGTHS  # set to None to compute max
+#  split = "validation"
+#  seed = 0
+#  batch_size = %BATCH_SIZE
+#  shuffle = False
+#  use_cached = False
+# """
 
-seqio.Evaluator:
-  logger_cls = [@seqio.PyLoggingLogger, @seqio.TensorBoardLogger, @seqio.JSONLogger]
-  num_examples = 500  # Set to None to use all examples in the infer_eval dataset.
-  use_memory_cache = True
+#seqio.Evaluator:
+#  logger_cls = [@seqio.PyLoggingLogger, @seqio.TensorBoardLogger, @seqio.JSONLogger]
+#  num_examples = 500  # Set to None to use all examples in the infer_eval dataset.
+#  use_memory_cache = True
 
 utils.CheckpointConfig:
   restore = @utils.RestoreCheckpointConfig()
@@ -202,7 +204,7 @@ utils.SaveCheckpointConfig:
   dtype = 'float32'
   keep = 1  # set to None to keep all checkpoints
   save_dataset = False  # don't checkpoint dataset state
-  period = 10 #5000  # checkpoint frequency
+  period = 1000  # checkpoint frequency
 
 trainer.Trainer:
   num_microbatches = None
