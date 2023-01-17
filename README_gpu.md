@@ -61,6 +61,9 @@ TODO: to verify for Slurm, `Slurm environments, you can simply call jax.distribu
 ### Implementing a new vocabulary 
 Converts the GPT2 tokenizer to a format compatible with T5X. The Vocabulary abstract class is in `seqio/vocabularies.py`.
 
+### Running on AWS 
+* On machines running `Amazon Linux release 2`, the certs are fucked in a way that they aren't on GCP (see [here](https://github.com/tensorflow/tensorflow/issues/40065) for related issue). Fix with `sudo ln -s /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt` if you get libcurl errors. 
+
 ### Misc
 * `model_parallel_submesh` can be an int (for a single GPU) or a 
 * `model_parallel_submesh` and `num_partitions` arguments are mutually-exclusive methods for partitioning! See partitioning.md for more details.

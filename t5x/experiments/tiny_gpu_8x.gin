@@ -75,6 +75,7 @@ LOSS_NORMALIZING_FACTOR = None  # set to pretraining batch_size * target_token_l
 # Vocabulary (shared by encoder and decoder)
 VOCABULARY = @seqio.SentencePieceVocabulary()
 seqio.SentencePieceVocabulary.sentencepiece_model_file = "gs://t5-data/vocabs/cc_all.32000.100extra/sentencepiece.model"
+seqio.SentencePieceVocabulary.sentencepiece_model_file = "/home/ec2-user/t5x/experiments/sentencepiece.model"
 
 # Vocabulary, using GPT2 vocab
 #VOCABULARY = @gpt2_encoder.GPT2Vocabulary()

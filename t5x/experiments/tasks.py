@@ -14,7 +14,7 @@ import tensorflow_io
 
 from t5x.data import gpt2_encoder
 
-_GCS_BUCKET = 's3://hugginghelen/tfds' # 'gs://hugginghelen/t5x-test/pile'
+_GCS_BUCKET = '/gpfswork/tfds' #'s3://hugginghelen/tfds' # 'gs://hugginghelen/t5x-test/pile'
 os.environ['TFDS_DATA_DIR'] = _GCS_BUCKET
 import tensorflow_datasets as tfds
 
@@ -137,7 +137,7 @@ class Pile(tfds.core.GeneratorBasedBuilder):
 
     def _generate_examples(self, path):
         pipeline = PileReader(path)
-        encoder = gpt2_encoder.GPT2Vocabulary()
+        # encoder = gpt2_encoder.GPT2Vocabulary()
 
         for x, result in enumerate(pipeline):
             if result:
