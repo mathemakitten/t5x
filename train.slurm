@@ -9,8 +9,6 @@
 #SBATCH --time 100:00:00
 #SBATCH --output=/home/ec2-user/t5x/log.txt
 
-set -x -e
-
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 __conda_setup="$('/home/ec2-user/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
@@ -26,7 +24,7 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
-# source /home/ec2-user/anaconda3/conda/bin/activate t5x
+# This needs to run at least once because AWS certs live elsewhere apparently
 sudo ln -s /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
 
 conda activate t5x
@@ -36,4 +34,8 @@ TFDS_DATA_DIR=/gpfswork/tfds
 PROJECT_DIR=/home/ec2-user/t5x/t5x/experiments
 T5X_DIR=/home/ec2-user/t5x
 
-srun $SRUN_ARGS --jobid $SLURM_JOB_ID bash -c "PYTHONPATH=${PROJECT_DIR} python t5x/train.py --gin_search_paths=${PROJECT_DIR} --gin_file="t5x/experiments/tiny_gpu_8x.gin" --gin.MODEL_DIR=\"${MODEL_DIR}\" --tfds_data_dir=${TFDS_DATA_DIR}"
+ls /home/ec2-user/t5x/t5x/experiments
+
+export PYTHONPATH="${PYTHONPATH}:/home/ec2-user/t5x/t5x/experiments"
+
+srun python t5x/train.py --gin_search_paths=${PROJECT_DIR} --gin_file="t5x/experiments/tiny_gpu_8x.gin" --gin.MODEL_DIR=\"${MODEL_DIR}\" --tfds_data_dir=${TFDS_DATA_DIR}
