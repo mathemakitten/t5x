@@ -63,6 +63,7 @@ Converts the GPT2 tokenizer to a format compatible with T5X. The Vocabulary abst
 
 ### Running on AWS 
 * On machines running `Amazon Linux release 2`, the certs are fucked in a way that they aren't on GCP (see [here](https://github.com/tensorflow/tensorflow/issues/40065) for related issue). Fix with `sudo ln -s /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt` if you get libcurl errors. 
+* For using GFile, not only do you need to do `gcloud auth login --update-adc` to update the service account, you must manually set `os.environ = ["GOOGLE_APPLICATION_CREDENTIALS"]`. This is likely at `~/.config/gcloud`.
 
 ### Misc
 * `model_parallel_submesh` can be an int (for a single GPU) or a 
