@@ -10,9 +10,11 @@ from t5.evaluation import metrics
 
 # For S3 only. This has the side effect of loading the plugin for the S3 filesystem.
 #  See https://github.com/tensorflow/serving/issues/1963#issuecomment-1055903347.
-import tensorflow_io
+# import tensorflow_io
 
 from t5x.data import gpt2_encoder
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = '/home/ec2-user/.config/gcloud/application_default_credentials.json'
 
 _GCS_BUCKET = '/gpfswork/tfds' #'s3://hugginghelen/tfds' # 'gs://hugginghelen/t5x-test/pile'
 os.environ['TFDS_DATA_DIR'] = _GCS_BUCKET

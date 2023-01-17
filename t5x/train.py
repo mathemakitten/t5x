@@ -48,6 +48,8 @@ from t5x import trainer as trainer_lib
 from t5x import utils
 import tensorflow as tf
 
+# AWS only, lol sorry for the hardcoding.
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = '/home/ec2-user/.config/gcloud/application_default_credentials.json'
 
 # Automatically search for gin files relative to the T5X package.
 _DEFAULT_GIN_SEARCH_PATHS = [
