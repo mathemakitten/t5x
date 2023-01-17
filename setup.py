@@ -71,6 +71,9 @@ setuptools.setup(
         # Cloud TPU requirements.
         'tpu': [f'jax[tpu] >= {_jax_version}'],
 
+        # For running on AWS with S3.
+        'aws': ['tensorflow_io'],
+
         # If you want to use the hacky-but-fast TFDS data loader for The Pile
         'pile': ['lm_dataformat', 'jsonlines', 'gdown', 'concurrent_iterator', 'pytablewriter', 'gitpython', 'fasttext', 'best-download', 'gsutil']
     },

@@ -8,10 +8,13 @@ import tensorflow as tf
 import zstandard
 from t5.evaluation import metrics
 
-# from  import GPT2Vocabulary
+# For S3 only. This has the side effect of loading the plugin for the S3 filesystem.
+#  See https://github.com/tensorflow/serving/issues/1963#issuecomment-1055903347.
+import tensorflow_io
+
 from t5x.data import gpt2_encoder
 
-_GCS_BUCKET = '/gpfswork/tfds' # 'gs://hugginghelen/t5x-test/pile'
+_GCS_BUCKET = 's3://hugginghelen/tfds' # 'gs://hugginghelen/t5x-test/pile'
 os.environ['TFDS_DATA_DIR'] = _GCS_BUCKET
 import tensorflow_datasets as tfds
 
