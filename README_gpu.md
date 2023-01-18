@@ -65,6 +65,7 @@ Vocabularies need to run in the graph if tokenization is to be done on the fly, 
 
 ### Running on AWS 
 * On machines running `Amazon Linux release 2`, the certs are fucked in a way that they aren't on GCP because Tensorflow hardcodes the expected path (see [here](https://github.com/tensorflow/tensorflow/issues/40065) for related issue). Fix with `sudo ln -s /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt` if you get libcurl errors. 
+* On a Slurm cluster you might also need to run this symlink on every compute node; easiest way is to do it somewhere in the train.py with `os.symlink`
 * For using GFile not working on AWS, not only do you need to do `gcloud auth login --update-adc` to update the service account, you must manually set `os.environ = ["GOOGLE_APPLICATION_CREDENTIALS"]`. This is likely at `~/.config/gcloud`.
 
 ### Misc

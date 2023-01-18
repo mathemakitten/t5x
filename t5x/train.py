@@ -48,6 +48,12 @@ from t5x import trainer as trainer_lib
 from t5x import utils
 import tensorflow as tf
 
+# For AWS this symlink needs to be on all the nodes
+try:
+    os.symlink('/etc/ssl/certs/ca-bundle.crt', '/etc/ssl/certs/ca-certificates.crt')
+except Exception as e:
+    print(f"Symlink already added: {e}")
+
 # AWS only, lol sorry for the hardcoding.
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = '/home/ec2-user/.config/gcloud/application_default_credentials.json'
 
