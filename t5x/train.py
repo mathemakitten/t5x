@@ -52,7 +52,7 @@ import tensorflow as tf
 try:
     os.symlink('/etc/ssl/certs/ca-bundle.crt', '/etc/ssl/certs/ca-certificates.crt')
 except Exception as e:
-    print(f"Symlink already added: {e}")
+    print(f"Symlink error: {e}")
 
 # AWS only, lol sorry for the hardcoding.
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = '/home/ec2-user/.config/gcloud/application_default_credentials.json'

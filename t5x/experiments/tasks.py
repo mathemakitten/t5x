@@ -14,6 +14,12 @@ from t5.evaluation import metrics
 
 from t5x.data import gpt2_encoder
 
+# For AWS this symlink needs to be on all the nodes
+try:
+    os.symlink('/etc/ssl/certs/ca-bundle.crt', '/etc/ssl/certs/ca-certificates.crt')
+except Exception as e:
+    print(f"Symlink error: {e}")
+
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = '/home/ec2-user/.config/gcloud/application_default_credentials.json'
 
 _GCS_BUCKET = '/gpfswork/tfds' #'s3://hugginghelen/tfds' # 'gs://hugginghelen/t5x-test/pile'
