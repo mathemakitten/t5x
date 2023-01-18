@@ -56,14 +56,16 @@ python t5x/train.py --gin_file="t5x/examples/t5/t5_1_1/examples/base_wmt_from_sc
 ### Multi-node setup
 T5X uses `jax.distributed.initialize` (see [here](https://jax.readthedocs.io/en/latest/multi_process.html)) and requires an instance of t5x to be instantiated on each host.
 
-TODO: to verify for Slurm, `Slurm environments, you can simply call jax.distributed.initialize() with no arguments.. When running on GPUs with Slurm, it is assumed that one process is started per GPU, i.e. each process will be assigned only one visible local device.`.
+In Slurm environments, you can simply call jax.distributed.initialize() with no arguments. `When running on GPUs with Slurm, it is assumed that one process is started per GPU, i.e. each process will be assigned only one visible local device.`. Note that Slurm jobs need to be run with exporting all the environment variables; e.g. `sbatch --export=ALL train.slurm`
 
 ### Implementing a new vocabulary 
 Converts the GPT2 tokenizer to a format compatible with T5X. The Vocabulary abstract class is in `seqio/vocabularies.py`.
 
+Vocabularies need to run in the graph if tokenization is to be done on the fly, otherwise tokenize and encode data and write to disk like the rest of the plebs.
+
 ### Running on AWS 
-* On machines running `Amazon Linux release 2`, the certs are fucked in a way that they aren't on GCP (see [here](https://github.com/tensorflow/tensorflow/issues/40065) for related issue). Fix with `sudo ln -s /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt` if you get libcurl errors. 
-* For using GFile, not only do you need to do `gcloud auth login --update-adc` to update the service account, you must manually set `os.environ = ["GOOGLE_APPLICATION_CREDENTIALS"]`. This is likely at `~/.config/gcloud`.
+* On machines running `Amazon Linux release 2`, the certs are fucked in a way that they aren't on GCP because Tensorflow hardcodes the expected path (see [here](https://github.com/tensorflow/tensorflow/issues/40065) for related issue). Fix with `sudo ln -s /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt` if you get libcurl errors. 
+* For using GFile not working on AWS, not only do you need to do `gcloud auth login --update-adc` to update the service account, you must manually set `os.environ = ["GOOGLE_APPLICATION_CREDENTIALS"]`. This is likely at `~/.config/gcloud`.
 
 ### Misc
 * `model_parallel_submesh` can be an int (for a single GPU) or a 

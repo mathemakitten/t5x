@@ -57,8 +57,8 @@ class GPT2Vocabulary(Vocabulary):
     def __init__(self, extra_ids: int = 0):
         """Vocabulary constructor. GPT2 does not have any extra tokens. """
         self._extra_ids = 0
-        vocab_file = #"/home/helen/data/vocab.json"  # TODO(helen) get this from gcs lol
-        vocab_bpe = #"/home/helen/data/vocab.bpe"
+        vocab_file = None #"/home/helen/data/vocab.json"  # TODO(helen) get this from gcs lol
+        vocab_bpe = None #"/home/helen/data/vocab.bpe"
         with open(vocab_file, 'r') as f:
             self.encoder = ast.literal_eval(f.read())
         self.decoder = {v: k for k, v in self.encoder.items()}
