@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-#SBATCH --job-name=t5x-benchmark
+#SBATCH --job-name=t5x
 #SBATCH --nodes=24
 #SBATCH --cpus-per-task=12
 #SBATCH --ntasks-per-node=1
@@ -30,6 +30,8 @@ sudo ln -s /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
 conda activate t5x
 
 MODEL_DIR=/home/ec2-user/t5x/experiments/models
+
+MODEL_DIR=/gpfswork/helen/experiments/models
 TFDS_DATA_DIR=/gpfswork/tfds
 PROJECT_DIR=/home/ec2-user/t5x/t5x/experiments
 T5X_DIR=/home/ec2-user/t5x

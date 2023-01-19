@@ -23,7 +23,6 @@ MIXTURE_OR_TASK_NAME = %gin.REQUIRED
 TASK_FEATURE_LENGTHS = %gin.REQUIRED
 TRAIN_STEPS = %gin.REQUIRED
 MODEL_DIR = %gin.REQUIRED
-BATCH_SIZE = 72 #64  # global batch size
 USE_CACHED_TASKS = True
 
 # DEPRECATED: Import the this module in your gin file.
@@ -35,7 +34,7 @@ USE_HARDWARE_RNG = False
 RANDOM_SEED = None  # None always uses faster, hardware RNG
 
 MIXTURE_OR_TASK_NAME = "pile"
-TASK_FEATURE_LENGTHS = {"inputs": 1024, "targets": 1024}  # sequence length; shorter will be truncated
+TASK_FEATURE_LENGTHS = {"inputs": 512, "targets": 512}  # sequence length; shorter will be truncated
 TRAIN_STEPS = 200000
 
 train_script.train:
@@ -50,13 +49,16 @@ train_script.train:
   total_steps = %TRAIN_STEPS
   summarize_config_fn = @gin_utils.summarize_gin_config
 
-  run_eval_before_training = True  # Assert that `loss_per_nonpadding_target_token` makes sense given the vocabulary size
-  eval_period = 5000
+  # TODO HELEN TURN THIS BACK ON LATER; TURNED OFF JUST FOR ITERATION SPEED
+  run_eval_before_training = False #True  # Assert that `loss_per_nonpadding_target_token` makes sense given the vocabulary size
+  eval_period = 20
   eval_steps = 20
   random_seed = 0
   use_hardware_rng = True
   infer_eval_dataset_cfg = None # @infer_eval/utils.DatasetConfig()
   inference_evaluator_cls = None #@seqio.Evaluator
+
+BATCH_SIZE = 18 #24 #48 #15  # global batch size
 
 partitioning.PjitPartitioner:
   num_partitions = 8 #1 #2  # change to 1 for running on a single GPU
