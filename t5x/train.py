@@ -634,6 +634,10 @@ def train(
       epoch_end_step = host_step + num_steps
       logging.info('Training for %d steps.', num_steps)
       while host_step < epoch_end_step:
+
+        if host_step >= 512:  # early exit because we only care about throughput
+          trainer.stop_training = True
+
         if trainer.stop_training:
           if checkpoint_period:
             logging.info('Saving a checkpoint before early stopping...')
