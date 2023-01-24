@@ -35,7 +35,7 @@ RANDOM_SEED = None  # None always uses faster, hardware RNG
 
 MIXTURE_OR_TASK_NAME = "pile"
 TASK_FEATURE_LENGTHS = {"inputs": 512, "targets": 512}  # sequence length; shorter will be truncated
-TRAIN_STEPS = 500
+TRAIN_STEPS = 525
 
 train_script.train:
   # from pretrain.gin
@@ -191,7 +191,7 @@ utils.SaveCheckpointConfig:
   dtype = 'float32'
   keep = 1  # set to None to keep all checkpoints
   save_dataset = False  # don't checkpoint dataset state
-  period = 1000  # checkpoint frequency
+  period = 2000  # checkpoint frequency
 
 trainer.Trainer:
   num_microbatches = None
