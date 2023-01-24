@@ -1,0 +1,1 @@
+* If you're using JAX, use `tpu-vm-v4-base`
