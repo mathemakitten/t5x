@@ -51,14 +51,14 @@ train_script.train:
 
   # TODO HELEN TURN THIS BACK ON LATER; TURNED OFF JUST FOR ITERATION SPEED
   run_eval_before_training = False #True  # Assert that `loss_per_nonpadding_target_token` makes sense given the vocabulary size
-  eval_period = 20
-  eval_steps = 100
+  eval_period = 100
+  eval_steps = 20
   random_seed = 0
   use_hardware_rng = True
   infer_eval_dataset_cfg = None # @infer_eval/utils.DatasetConfig()
   inference_evaluator_cls = None #@seqio.Evaluator
 
-BATCH_SIZE = 128 #512 #384 #128 #24 #48 #15  # global batch size
+BATCH_SIZE = 512 #384 #128 #24 #48 #15  # global batch size
 
 partitioning.PjitPartitioner:
   # num_partitions = 8
