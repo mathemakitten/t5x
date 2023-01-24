@@ -96,7 +96,8 @@ optax.adamw:
   # As for choices of schedule functions, we can either use T5x
   # learning rate scheduler, i.e., utils.create_learning_rate_scheduler, or
   # optax's native schedule functions, e.g., warmup_cosine_decay_schedule.
-  learning_rate = @optax.warmup_cosine_decay_schedule()
+  # learning_rate = @optax.warmup_cosine_decay_schedule()
+  learning_rate = 1e-4
 
 #optax.warmup_cosine_decay_schedule:
 #  init_value = 0.0
