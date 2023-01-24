@@ -35,7 +35,7 @@ RANDOM_SEED = None  # None always uses faster, hardware RNG
 
 MIXTURE_OR_TASK_NAME = "pile"
 TASK_FEATURE_LENGTHS = {"inputs": 512, "targets": 512}  # sequence length; shorter will be truncated
-TRAIN_STEPS = 5000
+TRAIN_STEPS = 500
 
 train_script.train:
   # from pretrain.gin
@@ -108,7 +108,7 @@ optax.warmup_cosine_decay_schedule:
 utils.create_learning_rate_scheduler:
   factors = 'constant * rsqrt_decay'
   base_learning_rate = 1.0
-  warmup_steps = 10000  # 10k to keep consistent with T5/MTF defaults.
+  warmup_steps = 100  # 10k to keep consistent with T5/MTF defaults.
 
 # ------------------- Model ----------------------------------------------------
 MODEL = @models.EncoderDecoderModel()
