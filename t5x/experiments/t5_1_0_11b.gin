@@ -58,10 +58,10 @@ train_script.train:
   infer_eval_dataset_cfg = None # @infer_eval/utils.DatasetConfig()
   inference_evaluator_cls = None #@seqio.Evaluator
 
-BATCH_SIZE = 64 #24 #48 #15  # global batch size
+BATCH_SIZE = 8 #24 #48 #15  # global batch size
 
 partitioning.PjitPartitioner:
-  num_partitions = 8  # change to 1 for running on a single GPU
+  num_partitions = 8
   # model_parallel_submesh = (1, 1, 1, 1)  # model_parallel_submesh and are exclusive of each other
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
 
