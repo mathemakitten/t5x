@@ -98,17 +98,17 @@ optax.adamw:
   # optax's native schedule functions, e.g., warmup_cosine_decay_schedule.
   learning_rate = @optax.warmup_cosine_decay_schedule()
 
-optax.warmup_cosine_decay_schedule:
-  init_value = 0.0
-  peak_value = 1e-4
-  warmup_steps = 1000
-  decay_steps = %TRAIN_STEPS
-  end_value = 0.0
+#optax.warmup_cosine_decay_schedule:
+#  init_value = 0.0
+#  peak_value = 1e-4
+#  warmup_steps = 1000
+#  decay_steps = %TRAIN_STEPS
+#  end_value = 0.0
 
-utils.create_learning_rate_scheduler:
-  factors = 'constant * rsqrt_decay'
-  base_learning_rate = 1.0
-  warmup_steps = 100  # 10k to keep consistent with T5/MTF defaults.
+#utils.create_learning_rate_scheduler:
+#  factors = 'constant * rsqrt_decay'
+#  base_learning_rate = 1.0
+#  warmup_steps = 100  # 10k to keep consistent with T5/MTF defaults.
 
 # ------------------- Model ----------------------------------------------------
 MODEL = @models.EncoderDecoderModel()
