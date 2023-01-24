@@ -1,5 +1,3 @@
-git clone --branch=hn-tpu https://github.com/mathemakitten/t5x
-
 cd t5x
 
 # python3 -m pip install -e '.[tpu]' -f https://storage.googleapis.com/jax-releases/libtpu_releases.html
