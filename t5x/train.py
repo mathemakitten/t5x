@@ -520,6 +520,7 @@ def train(
       _run_inference_eval()
 
   # Save checkpoints before the training loop starts.
+  """
   if checkpoint_period:
     # If not using Orbax, always save checkpoint, otherwise, only save a
     # checkpoint if a checkpoint does not already exist for that step. This is
@@ -530,6 +531,7 @@ def train(
       logging.info('Saving checkpoint before the training loop starts.')
       checkpoint_manager.save(trainer.train_state,
                               checkpoint_cfg.save.state_transformation_fns)
+  """
 
   # If we take manual control of the garbage collector, we need to disable it
   # before starting training.
@@ -673,6 +675,7 @@ def train(
       gc.collect()
 
     # Maybe save a checkpoint.
+    """
     if checkpoint_period and (final_epoch or
                               step_offset % checkpoint_period == 0):
       # Make sure last train step has completed before starting the clock.
@@ -684,6 +687,7 @@ def train(
       checkpoint_tock = time.time()
       train_metrics.write_scalar('timing/checkpoint_seconds',
                                  checkpoint_tock - checkpoint_tick, host_step)
+    """
 
     is_eval_epoch = eval_period and (final_epoch or
                                      step_offset % eval_period == 0)
