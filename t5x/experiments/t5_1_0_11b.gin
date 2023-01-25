@@ -35,7 +35,7 @@ RANDOM_SEED = None  # None always uses faster, hardware RNG
 
 MIXTURE_OR_TASK_NAME = "pile"
 TASK_FEATURE_LENGTHS = {"inputs": 512, "targets": 512}  # sequence length; shorter will be truncated
-TRAIN_STEPS = 825
+TRAIN_STEPS = 725
 
 train_script.train:
   # from pretrain.gin
@@ -63,7 +63,7 @@ BATCH_SIZE = 896 #928 #896 #768 #1024 #1152 #576 #512 #384 #128 #24 #48 #15  # g
 partitioning.PjitPartitioner:
   # num_partitions = 8
   # model_parallel_submesh = (2, 4, 4, 1)  # model_parallel_submesh and are exclusive of each other
-  model_parallel_submesh = (2, 4, 2, 1)
+  model_parallel_submesh = (4, 2, 2, 1)
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
 
 trainer.Trainer:
