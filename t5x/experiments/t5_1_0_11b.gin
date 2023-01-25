@@ -64,7 +64,7 @@ partitioning.PjitPartitioner:
   # num_partitions = 8
   # model_parallel_submesh = (2, 4, 4, 1)  # model_parallel_submesh and are exclusive of each other
   model_parallel_submesh = (4, 2, 2, 1)
-  model_parallel_submesh = (1, 2, 2, 4)
+  model_parallel_submesh = (2, 2, 4, 1)
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
 
 trainer.Trainer:
