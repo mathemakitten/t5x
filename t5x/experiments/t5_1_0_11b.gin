@@ -66,6 +66,10 @@ partitioning.PjitPartitioner:
   model_parallel_submesh = (2, 4, 2, 1)
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
 
+trainer.Trainer:
+  num_microbatches = 8 #16 #None
+  learning_rate_fn = @utils.create_learning_rate_scheduler()
+
 # ------------------- Loss HParam ----------------------------------------------
 Z_LOSS = 0.0001
 LABEL_SMOOTHING = 0.0
@@ -193,8 +197,4 @@ utils.SaveCheckpointConfig:
   keep = 1  # set to None to keep all checkpoints
   save_dataset = False  # don't checkpoint dataset state
   period = 2000  # checkpoint frequency
-
-trainer.Trainer:
-  num_microbatches = 16 #None
-  learning_rate_fn = @utils.create_learning_rate_scheduler()
 
