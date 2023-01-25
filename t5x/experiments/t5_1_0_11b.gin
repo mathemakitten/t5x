@@ -58,7 +58,7 @@ train_script.train:
   infer_eval_dataset_cfg = None # @infer_eval/utils.DatasetConfig()
   inference_evaluator_cls = None #@seqio.Evaluator
 
-BATCH_SIZE = 900 #768 #1024 #1152 #576 #512 #384 #128 #24 #48 #15  # global batch size
+BATCH_SIZE = 864 #768 #1024 #1152 #576 #512 #384 #128 #24 #48 #15  # global batch size
 
 partitioning.PjitPartitioner:
   # num_partitions = 8
