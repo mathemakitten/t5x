@@ -67,7 +67,7 @@ partitioning.PjitPartitioner:
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
 
 trainer.Trainer:
-  num_microbatches = 4 #8 #16 #None
+  num_microbatches = 2 #4 #8 #16 #None
   learning_rate_fn = @utils.create_learning_rate_scheduler()
 
 # ------------------- Loss HParam ----------------------------------------------
