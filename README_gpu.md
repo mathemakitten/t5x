@@ -1,19 +1,29 @@
-# notes2self for GPU 
+# JAX and t5x on GPUs
 
-As of January 4, 2023.
+As of January 25, 2023.
 
-### Installation 
+**TLDR**: You probably don't actually want to run JAX at scale on GPUs, at least not with this repository. It runs almost right out of the box, but it is not fast. t5x does not implement pipeline parallelism because it was designed to run on TPUs, and the TPU interconnect is so fast that it doesn't _need_ pipeline parallelism. Unfortunately, on GPUs, being limited to only data and model parallelism means it is quite easily out-performed by tools like NVIDIA's Megatron, which implements 3D parallelism (pipeline, model, data).  NVIDIA is apparently looking to implement 3D parallelism in t5x, but who knows when that will happen, or whether it will close the gap. If you're looking to do work on GPUs at scale you are likely better off with something like NVIDIA's Megatron-Nemo. 
 
-* Deep Learning VM is OK to use (it installs cuDNN and CUDA; you do **not** need nvidia-docker), but don't forget to `sudo chown -R $USER /opt/conda/` 
+An important thing to note is that the t5x partitioning logic doesn't allow you to shard a model across nodes (see `get_gpu_mesh` in `t5x/partitioning.py` for the details). Presumably this is because the communications cost is so high that you would never actually want to do this. TODO: write about some of that non-trivially-opaque hybrid mesh logic.
+
+I ran t5x on GPUs with two setups: on Google Cloud with a single node, and scaled up to 24 nodes on AWS with slurm. Within a node it is perfectly fine for tinkering with, though it is not a practical tool for large-model training.
+
+### Installation
+
+* If you're on Google Cloud, the Deep Learning VM (Tensorflow version) is OK to use. The major upside is that it installs cuDNN and CUDA for you, which is still somehow one of the most painful things to do in 2023. You do **not** need nvidia-docker despite the fact that NVIDIA contributed examples to the repository which used nvidia-docker. It works perfectly fine without Docker. (As much as I love Docker in theory, in practice it adds unnecessary complexity to most machine learning workflows.)
+* The easiest way to solve most early permissions problems is to `sudo chown -R $USER /opt/conda/` 
 * `gcloud auth login`
 * `conda create -n t5x python=3.8.10`
 * `pip install -e .`
-* `pip install jaxlib==0.4.1+cuda11.cudnn86 -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html`
-* If you get a 403 Forbidden on the storage bucket, do `gcloud auth login --update-adc` to add the service account
+* If you want to run model training on The Pile, you can also do `python3 -m pip install -e '.[pile]'` to install dependencies which  install and turn The Pile into TFRecords very quickly.
+* Install jaxlib: `pip install jaxlib==0.4.1+cuda11.cudnn86 -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html`
+* If you get a 403 Forbidden on the storage bucket, do `gcloud auth login --update-adc` to add the service account to the defaults.
 
-### Test training 
+### Some small single-node model training runs 
 
-Ensure to set `MODEL_DIR="gs://..."` and `TFDS_DATA_DIR=gs://...`
+Run these examples to make sure that everything works as expected.
+
+Ensure to set the environment variables `MODEL_DIR="gs://..."` and `TFDS_DATA_DIR=gs://...`
 
 **Decoder only**
 
@@ -28,40 +38,49 @@ For a decoder (134307072 parameters) which you can fit on a single T4 for debugg
 python t5x/train.py --gin_file="t5x/examples/decoder_only/examples/tiny_gpu_single.gin" --gin.MODEL_DIR=\"${MODEL_DIR}\" --tfds_data_dir=${TFDS_DATA_DIR}
 ```
 
-TODO(helen): figure out why the loss is so high (1477)
-
 For the same decoder (134307072 parameters) with a larger batch size to scale up on 4 GPUs:
 
 ```
 python t5x/train.py --gin_file="t5x/examples/decoder_only/examples/tiny_gpu_4x.gin" --gin.MODEL_DIR=\"${MODEL_DIR}\" --tfds_data_dir=${TFDS_DATA_DIR}
 ```
 
-**T5** (have not tested on GPU yet)
-
-```
-python t5x/train.py --gin_file="t5x/examples/t5/t5_1_1/examples/base_wmt_from_scratch.gin" --gin.MODEL_DIR=\"${MODEL_DIR}\" --tfds_data_dir=${TFDS_DATA_DIR}` 
-```
-
 ### CUDA shenanigans
-* `nvcc --version`; `Build cuda_11.4` works for sure
-* For JAX on GPUs CUDA 11.4 or newer is required so you will likely have to upgrade it manually
-  * NVIDIA instructions [here](https://developer.nvidia.com/cuda-11-4-1-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Debian&target_version=10&target_type=deb_local)
-* Download JAX GPU versions from [here](https://storage.googleapis.com/jax-releases/jax_cuda_releases.html), *not* [here](https://storage.googleapis.com/jax-releases/jax_releases.html) as linked in the T5X documentation. 
-* CUDA is probably at `/usr/local/cuda/lib64`, and `jaxlib==0.4.1+cuda11.cudnn86` works.
 
-### XLA flags 
+As with any GPU cluster, you might run into CUDA issues. Using nvidia-docker would likely solve some of them, but if you are like me and do not want to use Docker, this is how I got up and running on the Deep Learning VM:
+
+* For JAX on GPUs, CUDA 11.4 or newer is required so you will likely have to upgrade it manually
+  * NVIDIA instructions [here](https://developer.nvidia.com/cuda-11-4-1-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Debian&target_version=10&target_type=deb_local)
+  * `nvcc --version`; `Build cuda_11.4` definitely works.
+* Download JAX GPU versions from [here](https://storage.googleapis.com/jax-releases/jax_cuda_releases.html), *not* [here](https://storage.googleapis.com/jax-releases/jax_releases.html) as linked in the original T5X documentation.
+* CUDA is probably at `/usr/local/cuda/lib64`, and `jaxlib==0.4.1+cuda11.cudnn86` works without issue.
+
+### XLA flags for GPU
 * [NVIDIA](https://github.com/google-research/t5x/pull/952) suggests setting XLA debugging flags with `export XLA_FLAGS='--xla_gpu_simplify_all_fp_conversions --xla_gpu_all_reduce_combine_threshold_bytes=136314880 ${XLA_FLAGS}'`
 * As per [XLA documentation](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/compiler/xla/xla.proto), `xla_gpu_simplify_all_fp_conversions` needs to be set because it "allows all floating-point conversions to be simplified, including those that affect the numerics. The `BFloat16Normalization` pass inserts many `f32 -> bf16 -> f32` conversion pairs. These are not removed by the `AlgebraicSimplifier`, as that will only simplify conversions that are no-ops, e.g. `bf16 -> f32 -> bf16`. Removing these improves accuracy."
+* In practice, I did not ablate to understand if they made a difference. It doesn't hurt to set them anyway.
 
-### Multi-node setup
-T5X uses `jax.distributed.initialize` (see [here](https://jax.readthedocs.io/en/latest/multi_process.html)) and requires an instance of t5x to be instantiated on each host.
+### Running t5x on Slurm
 
-TODO: to verify for Slurm, `Slurm environments, you can simply call jax.distributed.initialize() with no arguments.. When running on GPUs with Slurm, it is assumed that one process is started per GPU, i.e. each process will be assigned only one visible local device.`.
+On Slurm, you can call `jax.distributed.initialize()` with no arguments and everything just works. See [here](https://jax.readthedocs.io/en/latest/multi_process.html). 
 
-### Implementing a new vocabulary 
-Converts the GPT2 tokenizer to a format compatible with T5X. The Vocabulary abstract class is in `seqio/vocabularies.py`.
+From the JAX docs: `When running on GPUs with Slurm, it is assumed that one process is started per GPU, i.e. each process will be assigned only one visible local device.`
 
-### Misc
-* `model_parallel_submesh` can be an int (for a single GPU) or a 
+If you're running Slurm I assume that you're likely not running on Google Cloud (otherwise you'd be using Kubernetes!), which means you are likely running RHEL, which means you likely have to modify the environment variable which Tensorflow uses to look for certificates.
+
+See an example of a Slurm submission script in `scripts/train.slurm`.
+
+### Gotchas 
+
+As mentioned, it's quite slow on GPUs. I scaled up T5 11b on a fast-ish GPU cluster and the throughput was orders of magnitudes worse than NVIDIA codebases with pipeline parallelism. I have no idea why you would actually want to run t5x on GPUs at scale, in practice, and do not recommend doing so unless 3D parallelism gets added to t5x.
+
+Additionally, I had some issues with S3 and Tensorflow's GFile which I couldn't figure out in the span of two hours in a single night (they looked like authentication issues which I wasn't having on Google Cloud), and given that I was on a tight deadline, I ended up writing data to local storage on the cluster instead. I wouldn't recommend this on shared environments with shared data since random read/writes across a lot of people could slow down your cluster.
+
+### Miscellaneous thoughts
 * `model_parallel_submesh` and `num_partitions` arguments are mutually-exclusive methods for partitioning! See partitioning.md for more details.
-* Easiest way to get up and running on a single GPU for debugging is setting `num_partitions = 1` in `partitioning.PjitPartitioner`.
+* Easiest way to get up and running on a single GPU for debugging is setting `num_partitions = 1` in `partitioning.PjitPartitioner`, which allows you to instantiate the model on a single GPU. You can easily scale this to two GPUs by setting `num_partitions = 1`. Because you would never actually want to shard your model across nodes, this is the only real model parallelism lever you can modify on GPUs.
+* Gin configs are great, unless you chain them together by overwriting them several times and lose track of where an attribute gets changed. This is probably the one downside of the gin `include someotherconfig.gin` magic.
+
+
+### Useful notes if you're coming from PyTorch
+* There's no equivalent tool to SeqIO in the Pytorch ecosystem, but luckily, SeqIO works out-of-the-box! You can do underrated things like checkpoint the data pipeline iterator to restore midway through a run, or upsample specific parts of your pretraining mix. You should probably replace whatever data iteration tool you're using with SeqIO right away.
+* Model checkpointing in full precision across workers is already implemented, and reshaping them to be restored on a different topology is super easy.
