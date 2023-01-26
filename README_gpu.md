@@ -76,6 +76,7 @@ As mentioned, it's quite slow on GPUs. I scaled up T5 11b on a fast-ish GPU clus
 Additionally, I had some issues with S3 and Tensorflow's GFile which I couldn't figure out in the span of two hours in a single night (they looked like authentication issues which I wasn't having on Google Cloud), and given that I was on a tight deadline, I ended up writing data to local storage on the cluster instead. I wouldn't recommend this on shared environments with shared data since random read/writes across a lot of people could slow down your cluster.
 
 ### Miscellaneous thoughts
+* What's commonly referred to as "tensor parallelism" in the NVIDIA/Pytorch ecosystem is "model parallelism" here.
 * `model_parallel_submesh` and `num_partitions` arguments are mutually-exclusive methods for partitioning! See partitioning.md for more details.
 * Easiest way to get up and running on a single GPU for debugging is setting `num_partitions = 1` in `partitioning.PjitPartitioner`, which allows you to instantiate the model on a single GPU. You can easily scale this to two GPUs by setting `num_partitions = 1`. Because you would never actually want to shard your model across nodes, this is the only real model parallelism lever you can modify on GPUs.
 * Gin configs are great, unless you chain them together by overwriting them several times and lose track of where an attribute gets changed. This is probably the one downside of the gin `include someotherconfig.gin` magic.
