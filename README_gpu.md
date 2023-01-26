@@ -16,7 +16,7 @@ I ran t5x on GPUs with two setups: on Google Cloud with a single node, and scale
 * `conda create -n t5x python=3.8.10`
 * `pip install -e .`
 * If you want to run model training on The Pile, you can also do `python3 -m pip install -e '.[pile]'` to install dependencies which  install and turn The Pile into TFRecords very quickly.
-* Install jaxlib: `pip install jaxlib==0.4.1+cuda11.cudnn86 -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html`
+* Install the CUDA-friendly version of jaxlib (different than the version in setup.py): `pip install jaxlib==0.4.1+cuda11.cudnn86 -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html`
 * If you get a 403 Forbidden on the storage bucket, do `gcloud auth login --update-adc` to add the service account to the defaults.
 
 ### Some small single-node model training runs 
