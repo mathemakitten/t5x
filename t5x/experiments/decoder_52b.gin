@@ -5,7 +5,8 @@ import __main__ as train_script
 import seqio
 from t5x import adafactor
 from t5x import models
-from t5x.examples.t5 import network
+#from t5x.examples.t5 import network
+from t5x.examples.decoder_only import network
 
 from t5x import optimizers
 from t5x import decoding
