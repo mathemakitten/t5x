@@ -2,7 +2,7 @@ cd t5x
 
 export PATH=$PATH:/home/helen_huggingface_co/.local/bin
 
-MODEL_DIR=gs://hugginghelen/t5x/experiments/11b/model
+MODEL_DIR=gs://hugginghelen/t5x/experiments/52b/model
 TFDS_DATA_DIR=gs://hugginghelen/t5x-test/pile
 PROJECT_DIR=/home/helen_huggingface_co/t5x/t5x/experiments
 T5X_DIR=/home/helen_huggingface_co/t5x
