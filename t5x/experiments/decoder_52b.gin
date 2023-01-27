@@ -36,7 +36,7 @@ RANDOM_SEED = None  # None always uses faster, hardware RNG
 
 MIXTURE_OR_TASK_NAME = "pile"
 TASK_FEATURE_LENGTHS = {"inputs": 512, "targets": 512}  # sequence length; shorter will be truncated
-TRAIN_STEPS = 50
+TRAIN_STEPS = 4 #50
 
 train_script.train:
   # from pretrain.gin
@@ -52,14 +52,14 @@ train_script.train:
 
   # TODO HELEN TURN THIS BACK ON LATER; TURNED OFF JUST FOR ITERATION SPEED
   run_eval_before_training = False #True  # Assert that `loss_per_nonpadding_target_token` makes sense given the vocabulary size
-  eval_period = 25
+  eval_period = 2 #25
   eval_steps = 20
   random_seed = 0
   use_hardware_rng = True
   infer_eval_dataset_cfg = None # @infer_eval/utils.DatasetConfig()
   inference_evaluator_cls = None #@seqio.Evaluator
 
-BATCH_SIZE = 128 #3584 #5376 #1792 #1344 #928 #896 #768 #1024 #1152 #576 #512 #384 #128 #24 #48 #15  # global batch size
+BATCH_SIZE = 16 #128 #3584 #5376 #1792 #1344 #928 #896 #768 #1024 #1152 #576 #512 #384 #128 #24 #48 #15  # global batch size
 
 partitioning.PjitPartitioner:
   model_parallel_submesh = (4, 4, 2, 1)
