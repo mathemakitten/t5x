@@ -15,9 +15,9 @@ Check that you can SSH into the host:
 This will land you on the TPU VM, where you have root access and can install whatever dependencies you want. If you're running a single TPU (e.g. a v4-8), you can launch training jobs from here and they will just run on the device. Easy! 
 
 However, it gets a bit trickier if you want to run JAX code on pods.
-The SIMD (single instruction, multiple data) setup of JAX means that you must run _the same code on every device_ and a JAX process on every host. This is why there's a lot of code in t5x which goes like `if jax.process_index() == 0`; there's some code which shouldn't be run multiple times, like checkpointing and making directories. It's also why there is a ridiculous amount of duplicated logs which come out when you run code on all the hosts.
+The SIMD (single instruction, multiple data) setup of JAX means that you must run _the same code everywhere_ and a JAX process on every host. This is why there's a lot of code in t5x which goes like `if jax.process_index() == 0`; there's some code which shouldn't be run multiple times, like checkpointing and making directories. It's also why there is a ridiculous amount of duplicated logs which come out when you run code on all the hosts.
 
-The point, though: running the same code on host requires you to actually copy your code onto every host. This is pretty annoying, but luckily there's a gcloud command for running a command on all the hosts in a pod: 
+The point, though: running the same code on host requires you to actually copy your code onto every host. If you SSH into the TPU-VM for a pod and just try to launch the training job from there without deploying your code to all hosts then it won't work (even though it works in the case of a v4-8). This is pretty annoying, but luckily there's a gcloud command for running a command on all the hosts in a pod: 
 
 `gcloud compute tpus tpu-vm ssh helen-pod   --zone us-central2-b   --worker=all   --command="whatever normal bash command goes here"`
 
