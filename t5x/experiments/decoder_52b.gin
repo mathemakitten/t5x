@@ -36,7 +36,7 @@ RANDOM_SEED = None  # None always uses faster, hardware RNG
 
 MIXTURE_OR_TASK_NAME = "pile"
 TASK_FEATURE_LENGTHS = {"inputs": 1024, "targets": 1024}  # sequence length; shorter will be truncated
-TRAIN_STEPS = 40 #50
+TRAIN_STEPS = 200 #50
 
 train_script.train:
   # from pretrain.gin
@@ -52,7 +52,7 @@ train_script.train:
 
   # TODO HELEN TURN THIS BACK ON LATER; TURNED OFF JUST FOR ITERATION SPEED
   run_eval_before_training = False #True  # Assert that `loss_per_nonpadding_target_token` makes sense given the vocabulary size
-  eval_period = 20 #25
+  eval_period = 200 #25
   eval_steps = 20
   random_seed = 0
   use_hardware_rng = True
