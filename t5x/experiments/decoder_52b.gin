@@ -63,6 +63,7 @@ BATCH_SIZE = 8 #16 #16 #128 #3584 #5376 #1792 #1344 #928 #896 #768 #1024 #1152 #
 
 partitioning.PjitPartitioner:
   model_parallel_submesh = (4, 4, 4, 1)
+  model_parallel_submesh = (8, 4, 2, 1)
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
 
 trainer.Trainer:
