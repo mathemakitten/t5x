@@ -59,7 +59,7 @@ train_script.train:
   infer_eval_dataset_cfg = None # @infer_eval/utils.DatasetConfig()
   inference_evaluator_cls = None #@seqio.Evaluator
 
-BATCH_SIZE = 24 #16 #16 #128 #3584 #5376 #1792 #1344 #928 #896 #768 #1024 #1152 #576 #512 #384 #128 #24 #48 #15  # global batch size
+BATCH_SIZE = 192 #24 #16 #16 #128 #3584 #5376 #1792 #1344 #928 #896 #768 #1024 #1152 #576 #512 #384 #128 #24 #48 #15  # global batch size
 
 partitioning.PjitPartitioner:
   model_parallel_submesh = (4, 4, 4, 1)
@@ -67,7 +67,7 @@ partitioning.PjitPartitioner:
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
 
 trainer.Trainer:
-  num_microbatches = None #16 #24 #8 #4 #4 #8 #16 #None
+  num_microbatches = 8 #None #16 #24 #8 #4 #4 #8 #16 #None
   learning_rate_fn = @utils.create_learning_rate_scheduler()
 
 # ------------------- Loss HParam ----------------------------------------------
