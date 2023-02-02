@@ -1,12 +1,12 @@
 # JAX and t5x on GPUs
 
-As of January 25, 2023.
+As of February 2, 2023.
 
-**TLDR**: You probably don't actually want to run JAX at scale on GPUs, at least not with this repository. It runs almost right out of the box, but it is not fast. t5x does not implement pipeline parallelism because it was designed to run on TPUs, and the TPU interconnect is so fast that it doesn't _need_ pipeline parallelism. Unfortunately, on GPUs, being limited to only data and model parallelism means it is quite easily out-performed by tools like NVIDIA's Megatron, which implements 3D parallelism (pipeline, model, data).  NVIDIA is apparently looking to implement 3D parallelism in t5x, but who knows when that will happen, or whether it will close the gap. If you're looking to do work on GPUs at scale you are likely better off with something like NVIDIA's Megatron-Nemo. 
+**TLDR**: You maybe don't actually want to run JAX at scale on GPUs, at least not with this repository. It runs almost right out of the box, but it is limited by the fact that sharding across GPU nodes is limited by the interconnect of your cluster. t5x does not implement pipeline parallelism because it was designed to run on TPUs, and the TPU interconnect is so fast that it doesn't _need_ pipeline parallelism. Unfortunately, on GPUs, being limited to only data and model parallelism means it is out-performed by tools like NVIDIA's Megatron unless your internode communications speed is very fast, since Megatron implements 3D parallelism (pipeline, model, data).  NVIDIA is apparently looking to implement 3D parallelism in t5x, but who knows when that will happen, or whether it will close the gap. If you're looking to do work on GPUs at scale you are likely better off with something like NVIDIA's Megatron-Nemo, but JAX within a node is fine. 
 
-An important thing to note is that the t5x partitioning logic doesn't allow you to shard a model across nodes (see `get_gpu_mesh` in `t5x/partitioning.py` for the details). Presumably this is because the communications cost is so high that you would never actually want to do this. TODO: write about some of that non-trivially-opaque hybrid mesh logic.
+The t5x partitioning logic requires that the number of model partitions on GPU must be a factor or multiple of the number of local devices on a node (see `get_gpu_mesh` in `t5x/partitioning.py` for the details). TODO: write about some of that non-trivially-opaque hybrid mesh logic.
 
-I ran t5x on GPUs with two setups: on Google Cloud with a single node, and scaled up to 24 nodes on AWS with slurm. Within a node it is perfectly fine for tinkering with, though it is not a practical tool for large-model training.
+I ran t5x on GPUs with two setups: on Google Cloud with a single node, and scaled up to 24 nodes on AWS with slurm. 
 
 ### Installation
 
@@ -76,9 +76,9 @@ As mentioned, it's quite slow on GPUs. I scaled up T5 11b on a fast-ish GPU clus
 Additionally, I had some issues with S3 and Tensorflow's GFile which I couldn't figure out in the span of two hours in a single night (they looked like authentication issues which I wasn't having on Google Cloud), and given that I was on a tight deadline, I ended up writing data to local storage on the cluster instead. I wouldn't recommend this on shared environments with shared data since random read/writes across a lot of people could slow down your cluster.
 
 ### Miscellaneous thoughts
-* What's commonly referred to as "tensor parallelism" in the NVIDIA/Pytorch ecosystem is "model parallelism" here.
+* What's commonly referred to as "tensor parallelism" in the NVIDIA/Pytorch ecosystem is "model parallelism" here. If you're searching the codebase, search for "model parallel".
 * `model_parallel_submesh` and `num_partitions` arguments are mutually-exclusive methods for partitioning! See partitioning.md for more details.
-* Easiest way to get up and running on a single GPU for debugging is setting `num_partitions = 1` in `partitioning.PjitPartitioner`, which allows you to instantiate the model on a single GPU. You can easily scale this to two GPUs by setting `num_partitions = 1`. Because you would never actually want to shard your model across nodes, this is the only real model parallelism lever you can modify on GPUs.
+* Easiest way to get up and running on a single GPU for debugging is setting `num_partitions = 1` in `partitioning.PjitPartitioner`, which allows you to instantiate the model on a single GPU. You can easily scale this to two GPUs by setting `num_partitions = 1`. 
 * Gin configs are great, unless you chain them together by overwriting them several times and lose track of where an attribute gets changed. This is probably the one downside of the gin `include someotherconfig.gin` magic.
 
 
