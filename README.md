@@ -1,7 +1,7 @@
 
 ## Annotated T5X: Notes on running JAX outside of Google
 
-There are very few public technical details on running JAX at scale outside of Google written for engineers. For a week I had access to a bunch of compute and ran a bunch of JAX experiments on both A100 GPUs and v4 TPU using this repository, notably T5-11b (version 1.0). There are quite a few sharp bits related to the "running JAX outside of Google" bit, so I've tried to document them here. The most important notes are in `README_gpu.md` and `README_tpu.md`. Maybe they will be helpful if you are also considering running JAX outside of Google.
+There are very few public technical details on running JAX at scale outside of Google written for engineers. For a week I had access to a bunch of compute and ran a bunch of JAX experiments on both A100 GPUs and v4 TPU using this repository, notably T5-11b (version 1.0). There are quite a few sharp bits related to the "running JAX outside of Google" bit, so I've tried to document them here. The most important notes are in `docs/README_gpu.md` and `docs/README_tpu.md`. Maybe they will be helpful if you are also considering running JAX outside of Google.
 
 `README_gpu.md` contains instructions on getting setup on a single node and on a cluster, as well as notes on why you might not actually want to do this. 
 
