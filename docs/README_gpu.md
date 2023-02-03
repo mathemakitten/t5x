@@ -2,7 +2,7 @@
 
 As of February 2, 2023.
 
-**TLDR**: You maybe don't actually want to run JAX at scale on GPUs unless you have a very fast cluster (and if you have money to have a fast enough cluster to do this and you want to write JAX, you're better off using TPUs). It runs almost right out of the box, but it is limited by the fact that sharding across GPU nodes is limited by the interconnect of your cluster. t5x does not implement pipeline parallelism because it was designed to run on TPUs, and the TPU interconnect is so fast that it doesn't _need_ pipeline parallelism. Unfortunately, on GPUs, being limited to only data and model parallelism means it is out-performed by tools like NVIDIA's Megatron unless your internode communications speed is very fast, since Megatron implements 3D parallelism (pipeline, model, data).  NVIDIA is apparently looking to implement 3D parallelism in t5x, but who knows when that will happen, or whether it will close the gap. If you're looking to do work on GPUs at scale you are likely better off with something like NVIDIA's Megatron-Nemo, but JAX within a node is fine. 
+**TLDR**: You maybe don't actually want to run JAX at scale on GPUs unless you have a very fast cluster (and if you have money to have a fast enough cluster to do this and you want to write JAX, you're better off using TPUs). It runs almost right out of the box, but it is limited by the fact that sharding across GPU nodes is limited by the interconnect of your cluster. t5x does not implement pipeline parallelism because it was designed to run on TPUs, and the TPU interconnect is so fast that it doesn't _need_ pipeline parallelism. Unfortunately, on GPUs, being limited to only data and model parallelism means it is out-performed by tools like NVIDIA's Megatron unless your internode communications speed is very fast, since Megatron implements 3D parallelism (pipeline, model, data).  NVIDIA is apparently looking to implement 3D parallelism in t5x and so am I, but who knows when that will happen, or whether it will close the gap. If you're looking to do work on GPUs at scale you are likely better off with something like NVIDIA's Megatron-Nemo, but JAX within a node is fine. 
 
 The t5x partitioning logic requires that the number of model partitions on GPU must be a factor or multiple of the number of local devices on a node (see `get_gpu_mesh` in `t5x/partitioning.py` for the details). TODO: write about some of that non-trivially-opaque hybrid mesh logic.
 
@@ -69,9 +69,9 @@ If you're running Slurm I assume that you're likely not running on Google Cloud 
 
 See an example of a Slurm submission script in `scripts/train.slurm`.
 
-### Gotchas 
+### Gotchas
 
-As mentioned, it's quite slow on GPUs. I scaled up T5 11b on a fast-ish GPU cluster and the throughput was orders of magnitudes worse than NVIDIA codebases with pipeline parallelism. I have no idea why you would actually want to run t5x on GPUs at scale, in practice, and do not recommend doing so unless 3D parallelism gets added to t5x.
+Within a node the performance is about the same as Megatron-LM if not a little bit faster. However, the partitioning is tricky to scale across nodes. TODO: drop-in details.
 
 Additionally, I had some issues with S3 and Tensorflow's GFile which I couldn't figure out in the span of two hours in a single night (they looked like authentication issues which I wasn't having on Google Cloud), and given that I was on a tight deadline, I ended up writing data to local storage on the cluster instead. I wouldn't recommend this on shared environments with shared data since random read/writes across a lot of people could slow down your cluster.
 
