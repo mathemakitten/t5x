@@ -1,3 +1,14 @@
+
+## Annotated T5X: Notes on running JAX outside of Google
+
+There are very few public technical details on running JAX at scale outside of Google written for engineers. Recently I had access to a bunch of compute and ran a bunch of JAX experiments on both A100 GPUs and v4 TPU using this repository, notably T5-11b (version 1.0). There are quite a few sharp bits related to the "running JAX outside of Google" bit, so I've tried to document them here. The most important notes are in `docs/README_gpu.md` and `docs/README_tpu.md`. Maybe they will be helpful if you are also considering running JAX outside of Google.
+
+`README_gpu.md` contains instructions on getting setup on a single node and on a cluster, as well as notes on why you might not actually want to do this. 
+
+`README_tpu.md` contains instructions on running on v4 TPU pods outside of Google. The existing instructions in this README are pretty good, but incomplete in particular for TPU v4 since v4s aren't currently available on XManager for Vertex AI, so the quickstart instructions don't work. The instructions in the "Installation" section of this README are only for one TPU chip (e.g. a single v4-8), **they do not work on pods**! Notably, because SSHing into TPU VM and running the code doesn't actually deploy it to all TPU hosts, which each need to be running a copy of JAX. There's a lot of SIMD (single instruction, multiple data) magic happening under the hood which can be confusing if you haven't run JAX at scale before. See the notes for more details.
+
+Everything below is the normal Google t5x README.
+
 # T5X
 
 T5X is a modular, composable, research-friendly framework for high-performance,
