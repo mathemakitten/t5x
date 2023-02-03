@@ -67,7 +67,7 @@ There are more good notes on performance tuning here, but really, the only way t
 
 I didn't figure out how to gracefully kill a job running t5x in the time when I was working on this! If you're benchmarking or performance tuning then you can, of course, do something silly like turn off checkpointing everywhere and only run for a few hundred steps to make sure everything is as-expected before kicking off an actual run. Otherwise you will have zombie processes running on the TPU and won't be able to kick off another job and have to shut down the TPU and re-create it.  Don't kill the main TPU process by its pid; I did that by accident and had to nerf the entire pod and start over. 
 
-Logging is also strange: there's a *lot* of extra logs, one copy streaming from all the hosts. I figure that this doesn't bug people inside Google because some part of their infrastructure automagically collapses the log stream into a single readable one, but if you're on the outside, you should update your terminal scrollback to be infinite. 
+Logging is also strange: there's a *lot* of extra logs, one copy streaming from all the hosts. I figure that this doesn't bug people inside Google because some part of their infrastructure automagically collapses the log stream into a single readable one, but if you're on the outside, you should update your terminal scrollback to be infinite, and the logger should be changed to only print when `process_index = 0` if it's a duplicate. 
 
 Lastly, there's a bit of commentary in `t5x/partitioning.py` which I didn't fully understand:
 
