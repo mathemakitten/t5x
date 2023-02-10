@@ -87,7 +87,7 @@ Empirically, I found that you could push throughput during training by setting a
 | TPU v4-1024 | 52b  | t5x       | 1024    | 8x8x8    | 8  | (8,4,2,1)    |     | 24   | 0              | 26279.4                                                |             |
 | TPU v4-1024 | 52b  | t5x       | 1024    | 8x8x8    | 8  | (8,4,2,1)    |     | 48   | 8              | 19787.7                                                |             |
 | TPU v4-1024 | 52b  | t5x       | 1024    | 8x8x8    | 8  | (8,4,2,1)    |     | 64   | 8              | 27040.3                                                |             |
-| TPU v4-1024 | 52b  | t5x       | 1024    | 8x8x8    | 8  | (8,4,2,1)    |     | 192  | 8              | OOM???                                                 |             |
+| TPU v4-1024 | 52b  | t5x       | 1024    | 8x8x8    | 8  | (8,4,2,1)    |     | 192  | 8              | OOM                                                 |             |
 | TPU v4-1024 | 52b  | t5x       | 1024    | 8x8x8    |    | (8,4,2,1)    |     | 32   | 0              | OOM                                                    |
 
 There are more good notes on performance tuning here, but really, the only way to find out what works best is to try them out.
