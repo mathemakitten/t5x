@@ -28,7 +28,7 @@ with open('README.md') as fp:
   _LONG_DESCRIPTION = fp.read()
 
 _jax_version = '0.4.1'
-_jaxlib_version = '0.4.1+cuda11.cudnn8'
+_jaxlib_version = '0.4.1+cuda11.cudnn86'
 
 setuptools.setup(
     name='t5x',
@@ -72,7 +72,7 @@ setuptools.setup(
         'tpu': [f'jax[tpu] >= {_jax_version}'],
 
         # If you want to use the hacky-but-fast TFDS data loader for The Pile
-        'pile': ['lm_dataformat', 'gdown', 'concurrent_iterator', 'pytablewriter', 'gitpython', 'fasttext', 'best-download', 'gsutil']
+        'pile': ['lm_dataformat', 'gdown', 'concurrent_iterator', 'pytablewriter', 'gitpython', 'fasttext', 'best-download', 'gsutil', 'pysimdjson', 'tensorflow_io']
     },
     classifiers=[
         'Development Status :: 4 - Beta',
