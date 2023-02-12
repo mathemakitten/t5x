@@ -28,7 +28,7 @@ with open('README.md') as fp:
   _LONG_DESCRIPTION = fp.read()
 
 _jax_version = '0.4.1'
-_jaxlib_version = '0.4.1+cuda11.cudnn8'
+_jaxlib_version = '0.4.1+cuda11.cudnn86'
 
 setuptools.setup(
     name='t5x',
