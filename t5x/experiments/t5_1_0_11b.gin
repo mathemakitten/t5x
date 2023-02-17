@@ -61,7 +61,7 @@ BATCH_SIZE = 12 #24 #48 #15  # global batch size
 
 partitioning.PjitPartitioner:
   # num_partitions = 8 #1 #2  # change to 1 for running on a single GPU
-  model_parallel_submesh = (4, 2, 1, 1)  # model_parallel_submesh and are exclusive of each other
+  model_parallel_submesh = (12, 1)  # model_parallel_submesh and are exclusive of each other
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
 
 # ------------------- Loss HParam ----------------------------------------------
