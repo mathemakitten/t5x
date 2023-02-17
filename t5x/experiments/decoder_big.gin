@@ -5,7 +5,8 @@ import __main__ as train_script
 import seqio
 from t5x import adafactor
 from t5x import models
-from t5x.examples.t5 import network
+#from t5x.examples.t5 import network
+from t5x.examples.decoder_only import network
 
 from t5x import optimizers
 from t5x import decoding
@@ -34,8 +35,8 @@ USE_HARDWARE_RNG = False
 RANDOM_SEED = None  # None always uses faster, hardware RNG
 
 MIXTURE_OR_TASK_NAME = "pile"
-TASK_FEATURE_LENGTHS = {"inputs": 512, "targets": 512}  # sequence length; shorter will be truncated
-TRAIN_STEPS = 200000
+TASK_FEATURE_LENGTHS = {"inputs": 1024, "targets": 1024}  # sequence length; shorter will be truncated
+TRAIN_STEPS = 200 #50
 
 train_script.train:
   # from pretrain.gin
@@ -49,20 +50,25 @@ train_script.train:
   total_steps = %TRAIN_STEPS
   summarize_config_fn = @gin_utils.summarize_gin_config
 
-  run_eval_before_training = False  # Assert that `loss_per_nonpadding_target_token` makes sense given the vocabulary size
-  eval_period = 100
+  # TODO HELEN TURN THIS BACK ON LATER; TURNED OFF JUST FOR ITERATION SPEED
+  run_eval_before_training = False #True  # Assert that `loss_per_nonpadding_target_token` makes sense given the vocabulary size
+  eval_period = 200 #25
   eval_steps = 20
   random_seed = 0
   use_hardware_rng = True
   infer_eval_dataset_cfg = None # @infer_eval/utils.DatasetConfig()
   inference_evaluator_cls = None #@seqio.Evaluator
 
-BATCH_SIZE = 12 #24 #48 #15  # global batch size
+BATCH_SIZE = 24 #64 #48 #192 #24 #16 #16 #128 #3584 #5376 #1792 #1344 #928 #896 #768 #1024 #1152 #576 #512 #384 #128 #24 #48 #15  # global batch size
 
 partitioning.PjitPartitioner:
-  # num_partitions = 8 #1 #2  # change to 1 for running on a single GPU
-  model_parallel_submesh = (24, 1)  # model_parallel_submesh and are exclusive of each other
+  model_parallel_submesh = (4, 4, 4, 1)
+  # model_parallel_submesh = (8, 4, 2, 1)
   logical_axis_rules = @partitioning.standard_logical_axis_rules()
+
+trainer.Trainer:
+  num_microbatches = None #8 #None #16 #24 #8 #4 #4 #8 #16 #None
+  learning_rate_fn = @utils.create_learning_rate_scheduler()
 
 # ------------------- Loss HParam ----------------------------------------------
 Z_LOSS = 0.0001
@@ -95,42 +101,48 @@ optax.adamw:
   # As for choices of schedule functions, we can either use T5x
   # learning rate scheduler, i.e., utils.create_learning_rate_scheduler, or
   # optax's native schedule functions, e.g., warmup_cosine_decay_schedule.
-  learning_rate = @optax.warmup_cosine_decay_schedule()
+  # learning_rate = @optax.warmup_cosine_decay_schedule()
+  learning_rate = 1e-4
 
-optax.warmup_cosine_decay_schedule:
-  init_value = 0.0
-  peak_value = 1e-4
-  warmup_steps = 1000
-  decay_steps = %TRAIN_STEPS
-  end_value = 0.0
+#optax.warmup_cosine_decay_schedule:
+#  init_value = 0.0
+#  peak_value = 1e-4
+#  warmup_steps = 1000
+#  decay_steps = %TRAIN_STEPS
+#  end_value = 0.0
 
-utils.create_learning_rate_scheduler:
-  factors = 'constant * rsqrt_decay'
-  base_learning_rate = 1.0
-  warmup_steps = 10000  # 10k to keep consistent with T5/MTF defaults.
+#utils.create_learning_rate_scheduler:
+#  factors = 'constant * rsqrt_decay'
+#  base_learning_rate = 1.0
+#  warmup_steps = 100  # 10k to keep consistent with T5/MTF defaults.
+
 
 # ------------------- Model ----------------------------------------------------
-MODEL = @models.EncoderDecoderModel()
-models.EncoderDecoderModel:
-  module = @network.Transformer()
-  input_vocabulary = %VOCABULARY
-  output_vocabulary = %VOCABULARY
+MODEL = @models.DecoderOnlyModel()
+models.DecoderOnlyModel:
+  module = @network.DecoderWrapper()
+  vocabulary = %VOCABULARY
   optimizer_def = %OPTIMIZER
+  decode_fn = @decoding.temperature_sample
   z_loss = %Z_LOSS
   label_smoothing = %LABEL_SMOOTHING
   loss_normalizing_factor = %LOSS_NORMALIZING_FACTOR
 
+decoding.temperature_sample:
+  temperature = 1.0
+  topk = 40
+
 # ------------------- Network specification ------------------------------------
-network.Transformer.config = @network.T5Config()
-network.T5Config:
+network.DecoderWrapper.config = @network.TransformerConfig()
+network.TransformerConfig:
   vocab_size = 32128  # vocab size rounded to a multiple of 128 for TPU efficiency
   dtype = 'bfloat16'
-  emb_dim = 1024
-  num_heads = 128
-  num_encoder_layers = 24
-  num_decoder_layers = 24
+  emb_dim = 8192
+  num_heads = 64
+  num_layers = 64
   head_dim = 128
-  mlp_dim = 65536
+  mlp_dim = 32768
+  mlp_activations = ('gelu', 'linear')
   dropout_rate = 0.0
   logits_via_embedding = True
 
@@ -189,10 +201,4 @@ utils.SaveCheckpointConfig:
   dtype = 'float32'
   keep = 1  # set to None to keep all checkpoints
   save_dataset = False  # don't checkpoint dataset state
-  period = 20000  # checkpoint frequency
-
-trainer.Trainer:
-  num_microbatches = None
-  learning_rate_fn = @utils.create_learning_rate_scheduler()
-
-
+  period = 2000  # checkpoint frequency
