@@ -192,7 +192,7 @@ utils.SaveCheckpointConfig:
   period = 1000  # checkpoint frequency
 
 trainer.Trainer:
-  num_microbatches = None
+  num_microbatches = 2 #None
   learning_rate_fn = @utils.create_learning_rate_scheduler()
 
 
