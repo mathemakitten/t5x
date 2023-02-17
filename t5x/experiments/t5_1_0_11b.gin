@@ -49,8 +49,8 @@ train_script.train:
   total_steps = %TRAIN_STEPS
   summarize_config_fn = @gin_utils.summarize_gin_config
 
-  run_eval_before_training = True  # Assert that `loss_per_nonpadding_target_token` makes sense given the vocabulary size
-  eval_period = 20
+  run_eval_before_training = False  # Assert that `loss_per_nonpadding_target_token` makes sense given the vocabulary size
+  eval_period = 100
   eval_steps = 20
   random_seed = 0
   use_hardware_rng = True
