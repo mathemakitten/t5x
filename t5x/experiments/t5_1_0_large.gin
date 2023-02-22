@@ -74,40 +74,12 @@ VOCABULARY = @seqio.SentencePieceVocabulary()
 seqio.SentencePieceVocabulary.sentencepiece_model_file = "gs://t5-data/vocabs/cc_all.32000.100extra/sentencepiece.model"
 
 # ------------------- Optimizer ------------------------------------------------
-# Gin configuration makes it easy by simply importing any available optimizer in t5x/optimizers module.
-# Note the optimizers in t5x/optimizers are wrapped version of optimizers implemented in optax.
-
-# In this case, we choose to switch to the AdamW optimizer with gradient clip.
-#  `learning_rate` is set by `Trainer.learning_rate_fn`.
-OPTIMIZER = @optimizers.chain()
-
-optimizers.chain:
-  transformations = [@optax.clip(), @optax.adamw()]
-
-optax.clip:
-  max_delta = 1.0
-
-optax.adamw:
-  # Unlike Adafactor, most optimizers require to specify
-  # `learning_rate`. `learning_rate` accepts a float number (e.g., 1e-4) or
-  # a schedule function, which should take an argument `step` and output
-  # a learning rate for that step.
-  # As for choices of schedule functions, we can either use T5x
-  # learning rate scheduler, i.e., utils.create_learning_rate_scheduler, or
-  # optax's native schedule functions, e.g., warmup_cosine_decay_schedule.
-  learning_rate = @optax.warmup_cosine_decay_schedule()
-
-optax.warmup_cosine_decay_schedule:
-  init_value = 0.0
-  peak_value = 1e-4
-  warmup_steps = 1000
-  decay_steps = %TRAIN_STEPS
-  end_value = 0.0
-
-utils.create_learning_rate_scheduler:
-  factors = 'constant * rsqrt_decay'
-  base_learning_rate = 1.0
-  warmup_steps = 10000  # 10k to keep consistent with T5/MTF defaults.
+# `learning_rate` is set by `Trainer.learning_rate_fn`.
+OPTIMIZER = @adafactor.Adafactor()
+adafactor.Adafactor:
+  decay_rate = 0.8
+  step_offset = 0
+  logical_factor_rules = @adafactor.standard_logical_factor_rules()
 
 # ------------------- Model ----------------------------------------------------
 MODEL = @models.EncoderDecoderModel()
